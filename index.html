@@ -2205,8 +2205,10 @@ function loadEmailSettings() {
   document.getElementById('s_emailjs_public').value = emailSettings.publicKey || '';
 }
 
-// ============ BROADCAST SYSTEM ============
+// ============ BROADCAST SYSTEM (FIXED) ============
 let broadcastSelection = new Set();
+let broadcastQueue = [];
+let broadcastTimer = null;
 
 function openBroadcastModal() {
   const parties = DB.get('parties');
@@ -2221,6 +2223,8 @@ function openBroadcastModal() {
 
 function closeBroadcastModal() {
   document.getElementById('broadcastModal').classList.remove('active');
+  if (broadcastTimer) { clearTimeout(broadcastTimer); broadcastTimer = null; }
+  broadcastQueue = [];
 }
 
 function renderBroadcastRecipients() {
@@ -2291,51 +2295,79 @@ function sendBroadcast() {
     return toast(`No selected parties have ${channel === 'email' ? 'email' : 'phone number'}`, true);
   }
 
+  // Build queue
+  broadcastQueue = filtered.map((party, idx) => ({
+    party,
+    channel,
+    subject,
+    message: messageTemplate
+      .replace(/{name}/g, party.name)
+      .replace(/{company}/g, company.name || 'Our Company'),
+    idx
+  }));
+
   const progressEl = document.getElementById('bc_progress');
   progressEl.classList.add('active');
+  document.getElementById('bc_progressText').textContent = 'Starting broadcast...';
+  document.getElementById('bc_progressCount').textContent = `0 / ${broadcastQueue.length}`;
+  document.getElementById('bc_progressFill').style.width = '0%';
 
-  let sent = 0;
-  const total = filtered.length;
+  processBroadcastQueue();
+}
 
-  const sendNext = () => {
-    if (sent >= total) {
-      document.getElementById('bc_progressText').textContent = 'Broadcast complete!';
-      document.getElementById('bc_progressCount').textContent = `${total} / ${total}`;
-      toast(`✅ Broadcast sent to ${total} recipients`);
-      updateCommStats();
-      setTimeout(() => {
-        progressEl.classList.remove('active');
-        closeBroadcastModal();
-      }, 1500);
-      return;
+function processBroadcastQueue() {
+  if (broadcastQueue.length === 0) {
+    document.getElementById('bc_progressText').textContent = 'Broadcast complete!';
+    const total = broadcastSelection.size;
+    document.getElementById('bc_progressCount').textContent = `${total} / ${total}`;
+    document.getElementById('bc_progressFill').style.width = '100%';
+    toast(`✅ Broadcast sent to ${total} recipients`);
+    updateCommStats();
+    setTimeout(() => {
+      document.getElementById('bc_progress').classList.remove('active');
+      closeBroadcastModal();
+    }, 1500);
+    return;
+  }
+
+  const task = broadcastQueue.shift();
+  const total = broadcastSelection.size;
+  const current = total - broadcastQueue.length;
+
+  document.getElementById('bc_progressText').textContent = `Sending to ${task.party.name}... (${task.idx + 1}/${total})`;
+  document.getElementById('bc_progressCount').textContent = `${current} / ${total}`;
+  document.getElementById('bc_progressFill').style.width = `${((current) / total) * 100}%`;
+
+  try {
+    if (task.channel === 'whatsapp') {
+      const phone = formatWhatsAppNumber(task.party.phone);
+      if (phone) {
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(task.message)}`, '_blank');
+        logMessage('whatsapp', task.party, task.message, 'sent');
+      }
+    } else if (task.channel === 'sms') {
+      const phone = formatSMSNumber(task.party.phone);
+      if (phone) {
+        // For SMS via browser, use sms: protocol. For API, you'd call sendViaTextbelt API here.
+        // Since API can't be called from browser without CORS, we use sms: protocol
+        window.open(`sms:+${phone}?body=${encodeURIComponent(task.message)}`, '_blank');
+        logMessage('sms', task.party, task.message, 'sent');
+      }
+    } else if (task.channel === 'email') {
+      if (task.party.email) {
+        const sub = task.subject || `Message from ${company.name || 'Our Company'}`;
+        window.open(`mailto:${encodeURIComponent(task.party.email)}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(task.message)}`, '_blank');
+        logMessage('email', task.party, sub + '\n\n' + task.message, 'sent');
+      }
     }
+  } catch (e) {
+    console.error('Broadcast send error:', e);
+  }
 
-    const party = filtered[sent];
-    const msg = messageTemplate
-      .replace(/{name}/g, party.name)
-      .replace(/{company}/g, company.name || 'Our Company');
-
-    if (channel === 'whatsapp') {
-      window.open(`https://wa.me/${formatWhatsAppNumber(party.phone)}?text=${encodeURIComponent(msg)}`, '_blank');
-      logMessage('whatsapp', party, msg, 'sent');
-    } else if (channel === 'sms') {
-      window.open(`sms:+${formatSMSNumber(party.phone)}?body=${encodeURIComponent(msg)}`, '_blank');
-      logMessage('sms', party, msg, 'sent');
-    } else if (channel === 'email') {
-      window.open(`mailto:${encodeURIComponent(party.email)}?subject=${encodeURIComponent(subject || 'Message from ' + (company.name || 'Our Company'))}&body=${encodeURIComponent(msg)}`, '_blank');
-      logMessage('email', party, (subject || 'Message') + '\n\n' + msg, 'sent');
-    }
-
-    sent++;
-    const pct = (sent / total) * 100;
-    document.getElementById('bc_progressFill').style.width = pct + '%';
-    document.getElementById('bc_progressCount').textContent = `${sent} / ${total}`;
-    document.getElementById('bc_progressText').textContent = `Sending to ${party.name}...`;
-
-    setTimeout(sendNext, 800);
-  };
-
-  sendNext();
+  // Schedule next send after a delay
+  broadcastTimer = setTimeout(() => {
+    processBroadcastQueue();
+  }, 1200);
 }
 
 // ============ MESSAGE LOGGING ============
@@ -2554,21 +2586,25 @@ function executeScheduled(item, idx) {
     logMessage('email', { id: item.partyId, name: item.partyName, email: item.recipient }, (item.subject || '') + '\n\n' + item.message, 'sent');
   } else if (item.type === 'broadcast') {
     const parties = DB.get('parties').filter(p => item.recipients.includes(p.id));
-    parties.forEach((party, i) => {
-      setTimeout(() => {
-        const msg = item.message.replace(/{name}/g, party.name).replace(/{company}/g, company.name || 'Our Company');
-        if (item.channel === 'whatsapp' && party.phone) {
-          window.open(`https://wa.me/${formatWhatsAppNumber(party.phone)}?text=${encodeURIComponent(msg)}`, '_blank');
-          logMessage('whatsapp', party, msg, 'sent');
-        } else if (item.channel === 'sms' && party.phone) {
-          window.open(`sms:+${formatSMSNumber(party.phone)}?body=${encodeURIComponent(msg)}`, '_blank');
-          logMessage('sms', party, msg, 'sent');
-        } else if (item.channel === 'email' && party.email) {
-          window.open(`mailto:${encodeURIComponent(party.email)}?subject=${encodeURIComponent(item.subject || '')}&body=${encodeURIComponent(msg)}`, '_blank');
-          logMessage('email', party, (item.subject || '') + '\n\n' + msg, 'sent');
-        }
-      }, i * 800);
-    });
+    let i = 0;
+    const sendNext = () => {
+      if (i >= parties.length) return;
+      const party = parties[i];
+      const msg = item.message.replace(/{name}/g, party.name).replace(/{company}/g, company.name || 'Our Company');
+      if (item.channel === 'whatsapp' && party.phone) {
+        window.open(`https://wa.me/${formatWhatsAppNumber(party.phone)}?text=${encodeURIComponent(msg)}`, '_blank');
+        logMessage('whatsapp', party, msg, 'sent');
+      } else if (item.channel === 'sms' && party.phone) {
+        window.open(`sms:+${formatSMSNumber(party.phone)}?body=${encodeURIComponent(msg)}`, '_blank');
+        logMessage('sms', party, msg, 'sent');
+      } else if (item.channel === 'email' && party.email) {
+        window.open(`mailto:${encodeURIComponent(party.email)}?subject=${encodeURIComponent(item.subject || '')}&body=${encodeURIComponent(msg)}`, '_blank');
+        logMessage('email', party, (item.subject || '') + '\n\n' + msg, 'sent');
+      }
+      i++;
+      setTimeout(sendNext, 1200);
+    };
+    sendNext();
   }
 
   if (idx >= 0) {
