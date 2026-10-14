@@ -1,0 +1,4159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GST Accounting Software</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #333; }
+header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 16px 24px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+header h1 { font-size: 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+header h1 > span:first-child { display: flex; align-items: center; gap: 8px; }
+.header-user { display: flex; align-items: center; gap: 12px; font-size: 13px; flex-wrap: wrap; }
+.header-user .user-info { background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px; }
+.header-user .avatar { width: 28px; height: 28px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: white; }
+.header-user button { background: rgba(255,255,255,0.2); color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+.header-user button:hover { background: rgba(255,255,255,0.3); transform: none; }
+nav { display: flex; flex-wrap: wrap; gap: 6px; }
+nav a { color: #e0e7ff; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
+nav a.active { background: white; color: #1e3a8a; font-weight: 600; }
+main { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+h2 { margin-bottom: 16px; color: #1e3a8a; }
+h3 { margin: 16px 0 8px; color: #1e3a8a; }
+.page { display: none; }
+.page.active { display: block; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 20px; }
+input, select, textarea, button {
+  padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px;
+  font-size: 14px; font-family: inherit;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid #3b82f6; border-color: transparent; }
+button { background: #3b82f6; color: white; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+button:hover { background: #2563eb; transform: translateY(-1px); }
+button.danger { background: #ef4444; padding: 6px 10px; font-size: 12px; }
+button.danger:hover { background: #dc2626; }
+button.small { padding: 6px 10px; font-size: 12px; }
+button.success { background: #10b981; }
+button.success:hover { background: #059669; }
+button.secondary { background: #64748b; }
+button.secondary:hover { background: #475569; }
+button.whatsapp { background: #25D366; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; color: white; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; }
+button.whatsapp:hover { background: #128C7E; }
+button.sms-btn { background: #f59e0b; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; color: white; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; }
+button.sms-btn:hover { background: #d97706; }
+button.email-btn { background: #8b5cf6; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; color: white; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; }
+button.email-btn:hover { background: #7c3aed; }
+button.broadcast-btn { background: #ec4899; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; color: white; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; }
+button.broadcast-btn:hover { background: #db2777; }
+button.schedule-btn { background: #06b6d4; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; color: white; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; }
+button.schedule-btn:hover { background: #0891b2; }
+button.pdf-btn { background: #dc2626; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; color: white; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; }
+button.pdf-btn:hover { background: #b91c1c; }
+button.cancel-btn { background: #64748b; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: 600; transition: all 0.2s; }
+button.cancel-btn:hover { background: #475569; }
+table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; }
+th { background: #1e3a8a; color: white; padding: 10px; text-align: left; font-size: 13px; }
+td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+tr:hover { background: #f1f5f9; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-left: 4px solid #3b82f6; transition: transform 0.2s; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
+.card.green { border-left-color: #10b981; }
+.card.orange { border-left-color: #f59e0b; }
+.card.red { border-left-color: #ef4444; }
+.card.purple { border-left-color: #8b5cf6; }
+.card.pink { border-left-color: #ec4899; }
+.card.cyan { border-left-color: #06b6d4; }
+.card span { display: block; font-size: 13px; color: #64748b; margin-bottom: 6px; }
+.card b { font-size: 22px; color: #1e3a8a; }
+.totals { background: #eff6ff; padding: 14px; border-radius: 8px; margin: 16px 0; font-size: 15px; border-left: 4px solid #3b82f6; }
+.totals b { color: #1e3a8a; font-size: 18px; }
+textarea { width: 100%; min-height: 60px; margin-bottom: 12px; }
+#itemsTable tbody input, #itemsTable tbody select { width: 100%; padding: 6px; font-size: 13px; }
+.empty { text-align: center; padding: 40px; color: #94a3b8; font-style: italic; }
+.toast { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.2); z-index: 9999; display: none; max-width: 400px; }
+.toast.error { background: #ef4444; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+.modal-overlay.active { display: flex; }
+.modal { background: white; padding: 24px; border-radius: 12px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal h3 { margin-top: 0; }
+.invoice-print { font-family: Arial; }
+.invoice-print h1 { text-align: center; color: #1e3a8a; margin-bottom: 8px; font-size: 24px; }
+.invoice-print .row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+.invoice-print table { margin: 16px 0; }
+@media print { .no-print { display: none !important; } }
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+  nav a { font-size: 12px; padding: 5px 8px; }
+  table { font-size: 12px; }
+  th, td { padding: 6px; }
+  header h1 { flex-direction: column; gap: 12px; align-items: flex-start; }
+}
+
+/* AUTH SCREENS */
+#authScreen {
+  position: fixed; inset: 0; background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  z-index: 5000; display: flex; align-items: center; justify-content: center;
+  padding: 20px; overflow-y: auto;
+}
+#authScreen.hidden { display: none; }
+
+.auth-container {
+  background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  width: 100%; max-width: 440px; padding: 40px;
+  animation: slideUp 0.4s ease-out;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.auth-logo { text-align: center; margin-bottom: 24px; }
+.auth-logo .icon { font-size: 56px; margin-bottom: 8px; }
+.auth-logo h1 { font-size: 24px; color: #1e3a8a; margin-bottom: 4px; }
+.auth-logo p { color: #64748b; font-size: 13px; }
+.auth-tabs {
+  display: flex; margin-bottom: 24px;
+  background: #f1f5f9; border-radius: 10px; padding: 4px;
+}
+.auth-tabs button {
+  flex: 1; background: transparent; color: #64748b;
+  padding: 10px; border-radius: 8px; font-weight: 600;
+  font-size: 14px; transform: none; border: none; cursor: pointer;
+}
+.auth-tabs button:hover { background: rgba(59,130,246,0.1); transform: none; }
+.auth-tabs button.active { background: white; color: #1e3a8a; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.auth-form { display: none; }
+.auth-form.active { display: block; }
+.auth-field { margin-bottom: 16px; }
+.auth-field label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+.auth-field label .required { color: #ef4444; }
+.auth-field input {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid #e2e8f0; border-radius: 8px;
+  font-size: 14px; transition: all 0.2s;
+}
+.auth-field input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+.auth-field .hint { font-size: 11px; color: #94a3b8; margin-top: 4px; display: block; }
+.auth-field .error { font-size: 12px; color: #ef4444; margin-top: 4px; display: none; }
+.auth-field.error input { border-color: #ef4444; }
+.auth-field.error .error { display: block; }
+.auth-btn { width: 100%; padding: 14px; font-size: 15px; border-radius: 8px; font-weight: 700; margin-top: 8px; }
+.auth-footer { text-align: center; margin-top: 20px; font-size: 13px; color: #64748b; }
+.auth-footer a { color: #3b82f6; font-weight: 600; cursor: pointer; text-decoration: none; }
+.auth-footer a:hover { text-decoration: underline; }
+.password-strength { height: 4px; border-radius: 2px; margin-top: 6px; background: #e2e8f0; overflow: hidden; }
+.password-strength .bar { height: 100%; width: 0; transition: all 0.3s; border-radius: 2px; }
+.password-strength.weak .bar { width: 33%; background: #ef4444; }
+.password-strength.medium .bar { width: 66%; background: #f59e0b; }
+.password-strength.strong .bar { width: 100%; background: #10b981; }
+
+/* SUBSCRIPTION PLAN BADGE */
+.plan-info-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #10b981; color: #fff;
+  padding: 6px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
+.plan-info-badge.warning { background: #f59e0b; }
+.plan-info-badge.danger { background: #ef4444; }
+
+/* EXPIRED SCREEN */
+.expired-card {
+  background: white; border-radius: 16px; padding: 40px 34px;
+  max-width: 480px; width: 100%;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.35);
+  text-align: center; animation: slideUp 0.4s ease-out;
+}
+.expired-card .expired-icon { font-size: 64px; margin-bottom: 15px; }
+.expired-card h2 { color: #dc2626; font-size: 24px; margin-bottom: 10px; }
+.expired-card .plan-badge {
+  display: inline-block; background: #ea580c; color: #fff;
+  padding: 4px 14px; border-radius: 20px; font-size: 12px;
+  font-weight: 700; margin-bottom: 10px;
+}
+.expired-card .expired-info {
+  background: #fff5f5; border-left: 4px solid #dc2626;
+  padding: 15px; border-radius: 8px; text-align: left;
+  margin: 20px 0; font-size: 14px; color: #2d3436; line-height: 1.8;
+}
+.expired-card .expired-info strong { color: #dc2626; }
+.contact-box {
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: #fff; padding: 20px; border-radius: 12px;
+  margin: 15px 0; text-align: left;
+}
+.contact-box h3 { font-size: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.contact-box p { font-size: 14px; line-height: 1.8; margin: 0; }
+.contact-box .contact-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 14px; }
+.contact-box .contact-item .icon { font-size: 18px; }
+.contact-box a { color: #fff; text-decoration: none; font-weight: 700; border-bottom: 1px dashed rgba(255,255,255,0.5); }
+.contact-box a:hover { border-bottom-style: solid; }
+.expired-card .logout-link {
+  display: inline-block; margin-top: 15px; color: #6c757d;
+  font-size: 13px; cursor: pointer; text-decoration: underline;
+}
+.activation-note {
+  background: #eff6ff; border-left: 4px solid #3b82f6;
+  padding: 10px 14px; border-radius: 8px; font-size: 12px;
+  color: #1e3a8a; margin-bottom: 18px; line-height: 1.6;
+}
+
+/* ITEMS */
+.items-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+.search-box { display: flex; align-items: center; gap: 8px; background: white; padding: 8px 14px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex: 1; max-width: 400px; }
+.search-box input { border: none; outline: none; padding: 4px; font-size: 14px; flex: 1; }
+.search-box span { font-size: 18px; color: #64748b; }
+.item-form-card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 24px; border-top: 4px solid #3b82f6; }
+.item-form-card h3 { margin-top: 0; margin-bottom: 4px; font-size: 18px; }
+.item-form-card .subtitle { color: #64748b; font-size: 13px; margin-bottom: 16px; display: block; }
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-group label { font-size: 12px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.3px; }
+.field-group label .required { color: #ef4444; }
+.field-group .hint { font-size: 11px; color: #94a3b8; font-style: italic; }
+.field-group input, .field-group select { width: 100%; }
+.preview-box { background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 14px 18px; border-radius: 10px; margin-top: 14px; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.preview-box .label { font-size: 13px; color: #475569; }
+.preview-box .value { font-size: 18px; font-weight: 700; color: #1e3a8a; }
+.form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge.in-stock { background: #d1fae5; color: #065f46; }
+.badge.low-stock { background: #fef3c7; color: #92400e; }
+.badge.out-stock { background: #fee2e2; color: #991b1b; }
+.badge.gst { background: #e0e7ff; color: #3730a3; padding: 3px 8px; }
+.badge.unit { background: #f1f5f9; color: #475569; }
+.badge.scheduled { background: #cffafe; color: #155e75; }
+.badge.sent { background: #d1fae5; color: #065f46; }
+.badge.failed { background: #fee2e2; color: #991b1b; }
+.badge.pending { background: #fef3c7; color: #92400e; }
+.badge.customer { background: #dbeafe; color: #1e40af; }
+.badge.supplier { background: #fce7f3; color: #9d174d; }
+.hsn-suggestions { position: absolute; background: white; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; z-index: 50; display: none; width: 100%; margin-top: 2px; }
+.hsn-suggestions div { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+.hsn-suggestions div:hover { background: #eff6ff; }
+.hsn-suggestions div b { color: #1e3a8a; }
+.hsn-suggestions div small { color: #64748b; display: block; margin-top: 2px; }
+.relative { position: relative; }
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-mini { background: white; padding: 14px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); text-align: center; }
+.stat-mini span { display: block; font-size: 12px; color: #64748b; margin-bottom: 4px; }
+.stat-mini b { font-size: 18px; color: #1e3a8a; }
+.remove-btn { background: #ef4444; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px; }
+.remove-btn:hover { background: #dc2626; transform: translateY(-1px); }
+.edit-btn { background: #3b82f6; color: white; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; }
+.edit-btn:hover { background: #2563eb; }
+.remove-all-btn { background: #fee2e2; color: #991b1b; padding: 8px 16px; font-size: 13px; border-radius: 8px; font-weight: 600; border: 1px solid #fecaca; cursor: pointer; transition: all 0.2s; }
+.remove-all-btn:hover { background: #ef4444; color: white; }
+.items-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: white; border-radius: 8px 8px 0 0; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #475569; flex-wrap: wrap; gap: 8px; }
+.bulk-bar { display: none; padding: 12px 16px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; margin-bottom: 12px; align-items: center; gap: 12px; font-size: 14px; color: #92400e; flex-wrap: wrap; }
+.delete-modal { max-width: 420px; text-align: center; padding: 32px 24px; }
+.delete-modal .icon { font-size: 48px; margin-bottom: 12px; }
+.delete-modal h3 { color: #1e3a8a; margin-bottom: 8px; font-size: 20px; }
+.delete-modal p { color: #64748b; margin-bottom: 24px; font-size: 14px; line-height: 1.5; }
+.delete-modal .item-name { color: #dc2626; font-weight: 700; font-size: 15px; display: block; margin-top: 8px; word-break: break-word; }
+.delete-modal .actions { display: flex; gap: 10px; justify-content: center; }
+.delete-modal .actions button { padding: 10px 24px; font-size: 14px; }
+.delete-confirm-btn { background: #ef4444; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: 600; transition: all 0.2s; }
+.delete-confirm-btn:hover { background: #dc2626; }
+.toast button { margin-left: 8px; cursor: pointer; border: none; font-weight: 700; transition: all 0.2s; }
+.toast button:hover { transform: scale(1.05); }
+.profile-field { margin-bottom: 14px; }
+.profile-field label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; text-transform: uppercase; }
+.profile-field input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+
+/* WHATSAPP MODAL */
+.wa-modal { max-width: 640px; }
+.wa-modal .wa-header { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px; }
+.wa-modal .wa-header .wa-icon { width: 48px; height: 48px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+.wa-modal .wa-header .wa-info h3 { margin: 0 0 4px 0; font-size: 18px; }
+.wa-modal .wa-header .wa-info p { margin: 0; font-size: 13px; color: #64748b; }
+.wa-modal .wa-invoice-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8fafc; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #25D366; flex-wrap: wrap; gap: 8px; }
+.wa-modal .wa-invoice-item .wa-inv-info { flex: 1; min-width: 200px; }
+.wa-modal .wa-invoice-item .wa-inv-info b { color: #1e3a8a; }
+.wa-modal .wa-invoice-item .wa-inv-info small { display: block; color: #64748b; font-size: 12px; margin-top: 2px; }
+.wa-modal .wa-invoice-item .wa-inv-total { font-weight: 700; color: #1e3a8a; margin-right: 12px; }
+.wa-modal .wa-invoice-item .wa-inv-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.wa-modal .wa-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; }
+
+/* SMS MODAL */
+.sms-modal { max-width: 600px; }
+.sms-modal .sms-header { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px; }
+.sms-modal .sms-header .sms-icon { width: 48px; height: 48px; background: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+.sms-modal .sms-header .sms-info h3 { margin: 0 0 4px 0; font-size: 18px; }
+.sms-modal .sms-header .sms-info p { margin: 0; font-size: 13px; color: #64748b; }
+.sms-modal .sms-templates { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.sms-modal .sms-templates button { padding: 6px 12px; font-size: 12px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 20px; cursor: pointer; font-weight: 500; }
+.sms-modal .sms-templates button:hover { background: #e2e8f0; }
+.sms-modal textarea { min-height: 100px; font-size: 14px; }
+.sms-modal .sms-char-count { font-size: 12px; color: #64748b; text-align: right; margin-top: -8px; margin-bottom: 12px; }
+.sms-modal .sms-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; }
+.sms-modal .sms-actions button { padding: 10px 20px; font-size: 14px; }
+.sms-modal .sms-send-options { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.sms-modal .sms-send-options button { flex: 1; min-width: 140px; }
+.sms-badge { background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.sms-status { padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; display: none; }
+.sms-status.success { background: #d1fae5; color: #065f46; border-left: 3px solid #10b981; display: block; }
+.sms-status.error { background: #fee2e2; color: #991b1b; border-left: 3px solid #ef4444; display: block; }
+.sms-status.info { background: #dbeafe; color: #1e40af; border-left: 3px solid #3b82f6; display: block; }
+
+/* EMAIL MODAL */
+.email-modal { max-width: 640px; }
+.email-modal .email-header { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px; }
+.email-modal .email-header .email-icon { width: 48px; height: 48px; background: #8b5cf6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+.email-modal .email-header .email-info h3 { margin: 0 0 4px 0; font-size: 18px; }
+.email-modal .email-header .email-info p { margin: 0; font-size: 13px; color: #64748b; }
+.email-modal .email-field { margin-bottom: 12px; }
+.email-modal .email-field label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; text-transform: uppercase; }
+.email-modal .email-field input, .email-modal .email-field select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+.email-modal .email-templates { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.email-modal .email-templates button { padding: 6px 12px; font-size: 12px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 20px; cursor: pointer; font-weight: 500; }
+.email-modal .email-templates button:hover { background: #e2e8f0; }
+.email-modal textarea { min-height: 140px; font-size: 14px; }
+.email-modal .email-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; }
+.email-modal .email-actions button { padding: 10px 20px; font-size: 14px; }
+.email-modal .email-send-options { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.email-modal .email-send-options button { flex: 1; min-width: 140px; }
+
+/* BROADCAST MODAL */
+.broadcast-modal { max-width: 800px; }
+.broadcast-modal .bc-header { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px; }
+.broadcast-modal .bc-header .bc-icon { width: 48px; height: 48px; background: #ec4899; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+.broadcast-modal .bc-header .bc-info h3 { margin: 0 0 4px 0; font-size: 18px; }
+.broadcast-modal .bc-header .bc-info p { margin: 0; font-size: 13px; color: #64748b; }
+.broadcast-modal .bc-channel { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.broadcast-modal .bc-channel label { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+.broadcast-modal .bc-channel label:hover { border-color: #3b82f6; }
+.broadcast-modal .bc-channel input[type="radio"] { display: none; }
+.broadcast-modal .bc-channel label:has(input:checked) { background: #eff6ff; border-color: #3b82f6; }
+.broadcast-modal .bc-recipients { max-height: 240px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 16px; background: #f8fafc; }
+.broadcast-modal .bc-recipient { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 6px; cursor: pointer; }
+.broadcast-modal .bc-recipient:hover { background: #e2e8f0; }
+.broadcast-modal .bc-recipient input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+.broadcast-modal .bc-recipient .bc-recipient-info { flex: 1; }
+.broadcast-modal .bc-recipient .bc-recipient-info b { display: block; font-size: 13px; color: #1e3a8a; }
+.broadcast-modal .bc-recipient .bc-recipient-info small { color: #64748b; font-size: 11px; }
+.broadcast-modal .bc-toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.broadcast-modal .bc-toolbar button { padding: 6px 12px; font-size: 12px; }
+.broadcast-modal textarea { min-height: 120px; font-size: 14px; }
+.broadcast-modal .bc-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; }
+.broadcast-modal .bc-actions button { padding: 10px 20px; font-size: 14px; }
+.broadcast-modal .bc-progress { background: #f1f5f9; border-radius: 8px; padding: 12px; margin-top: 12px; display: none; }
+.broadcast-modal .bc-progress.active { display: block; }
+.broadcast-modal .bc-progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+.broadcast-modal .bc-progress-bar .fill { height: 100%; background: linear-gradient(90deg, #ec4899, #8b5cf6); width: 0%; transition: width 0.3s; border-radius: 4px; }
+
+/* SCHEDULE MODAL */
+.schedule-modal { max-width: 600px; }
+.schedule-modal .sch-header { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px; }
+.schedule-modal .sch-header .sch-icon { width: 48px; height: 48px; background: #06b6d4; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+.schedule-modal .sch-header .sch-info h3 { margin: 0 0 4px 0; font-size: 18px; }
+.schedule-modal .sch-header .sch-info p { margin: 0; font-size: 13px; color: #64748b; }
+.schedule-modal .sch-field { margin-bottom: 14px; }
+.schedule-modal .sch-field label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; text-transform: uppercase; }
+.schedule-modal .sch-field input, .schedule-modal .sch-field select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+.schedule-modal .sch-quick { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.schedule-modal .sch-quick button { padding: 6px 12px; font-size: 12px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 20px; cursor: pointer; }
+.schedule-modal .sch-quick button:hover { background: #e2e8f0; }
+.schedule-modal .sch-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; }
+
+/* SCHEDULED MESSAGES TABLE */
+.scheduled-list { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 20px; }
+.scheduled-list table { margin: 0; box-shadow: none; }
+.scheduled-list .scheduled-toolbar { padding: 12px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.scheduled-list .scheduled-toolbar b { color: #1e3a8a; }
+
+/* PARTY EDIT MODAL */
+.party-edit-modal { max-width: 700px; }
+.party-edit-modal .pe-header { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px; }
+.party-edit-modal .pe-header .pe-icon { width: 48px; height: 48px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+.party-edit-modal .pe-header .pe-info h3 { margin: 0 0 4px 0; font-size: 18px; color: #1e3a8a; }
+.party-edit-modal .pe-header .pe-info p { margin: 0; font-size: 13px; color: #64748b; }
+.party-edit-modal .pe-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.party-edit-modal .pe-field { display: flex; flex-direction: column; gap: 4px; }
+.party-edit-modal .pe-field label { font-size: 12px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.3px; }
+.party-edit-modal .pe-field label .required { color: #ef4444; }
+.party-edit-modal .pe-field input, .party-edit-modal .pe-field select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+.party-edit-modal .pe-field input:focus, .party-edit-modal .pe-field select:focus { outline: 2px solid #3b82f6; border-color: transparent; }
+.party-edit-modal .pe-field .hint { font-size: 11px; color: #94a3b8; font-style: italic; }
+.party-edit-modal .pe-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; }
+.party-edit-modal .pe-actions button { padding: 10px 24px; font-size: 14px; }
+.party-edit-modal .pe-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 16px; padding: 14px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 10px; border-left: 4px solid #3b82f6; }
+.party-edit-modal .pe-stat { text-align: center; }
+.party-edit-modal .pe-stat span { display: block; font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+.party-edit-modal .pe-stat b { font-size: 16px; color: #1e3a8a; }
+.party-edit-modal .pe-type-toggle { display: flex; gap: 8px; }
+.party-edit-modal .pe-type-toggle label { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; color: #475569; text-transform: none; letter-spacing: 0; }
+.party-edit-modal .pe-type-toggle label:hover { border-color: #3b82f6; }
+.party-edit-modal .pe-type-toggle input[type="radio"] { display: none; }
+.party-edit-modal .pe-type-toggle label:has(input:checked) { background: #eff6ff; border-color: #3b82f6; color: #1e3a8a; }
+
+/* GST FILING */
+.filing-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 2px solid #e2e8f0; }
+.filing-tabs button { background: transparent; color: #64748b; padding: 12px 20px; border: none; border-bottom: 3px solid transparent; border-radius: 0; font-size: 14px; font-weight: 600; cursor: pointer; transform: none; margin-bottom: -2px; }
+.filing-tabs button:hover { color: #3b82f6; background: #f8fafc; transform: none; }
+.filing-tabs button.active { color: #1e3a8a; border-bottom-color: #3b82f6; background: transparent; }
+.period-selector { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 20px; border-left: 4px solid #3b82f6; }
+.period-selector .row { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+.period-selector .field-group { min-width: 160px; }
+.return-card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 20px; }
+.return-card .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 2px solid #f1f5f9; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.return-card .header h3 { margin: 0; font-size: 20px; }
+.return-card .header .meta { font-size: 13px; color: #64748b; }
+.filing-summary-table th { background: #1e3a8a; }
+.filing-summary-table td.num { text-align: right; font-family: 'Courier New', monospace; }
+.filing-actions { display: flex; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 2px dashed #e2e8f0; flex-wrap: wrap; }
+.status-banner { padding: 16px 20px; border-radius: 10px; display: flex; align-items: center; gap: 12px; margin-bottom: 20px; font-weight: 600; }
+.status-banner.pending { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
+.status-banner.filed { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+.status-banner .icon { font-size: 24px; }
+.tax-calc-box { background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 20px; border-radius: 12px; border-left: 4px solid #3b82f6; margin: 20px 0; }
+.tax-calc-box .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 15px; border-bottom: 1px dashed #cbd5e1; }
+.tax-calc-box .row:last-child { border-bottom: none; }
+.tax-calc-box .row.total { padding-top: 12px; margin-top: 8px; border-top: 2px solid #3b82f6; font-size: 18px; font-weight: 700; color: #1e3a8a; }
+.tax-calc-box .row.payable { color: #dc2626; }
+.tax-calc-box .row.credit { color: #059669; }
+.filing-history { margin-top: 24px; }
+.filing-history table { font-size: 13px; }
+
+/* COMMUNICATION TABS */
+.comm-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 2px solid #e2e8f0; }
+.comm-tabs button { background: transparent; color: #64748b; padding: 12px 20px; border: none; border-bottom: 3px solid transparent; border-radius: 0; font-size: 14px; font-weight: 600; cursor: pointer; transform: none; margin-bottom: -2px; }
+.comm-tabs button:hover { color: #3b82f6; background: #f8fafc; transform: none; }
+.comm-tabs button.active { color: #1e3a8a; border-bottom-color: #3b82f6; background: transparent; }
+
+@media (max-width: 600px) {
+  .period-selector .row { flex-direction: column; align-items: stretch; }
+  .return-card .header { flex-direction: column; align-items: flex-start; }
+  .sms-modal .sms-send-options button { min-width: 100%; }
+  .email-modal .email-send-options button { min-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <div class="auth-container" id="authContainer">
+    <div class="auth-logo">
+      <div class="icon">📊</div>
+      <h1>GST Accounting</h1>
+      <p>Login with your subscription credentials</p>
+    </div>
+
+    
+
+    <form class="auth-form active" id="loginForm" onsubmit="handleSubscriptionLogin(event)">
+      <div class="auth-field" id="loginUserIdField">
+        <label>User ID <span class="required">*</span></label>
+        <input type="text" id="loginUserId" placeholder="Enter your user ID" autocomplete="username">
+        <span class="error">Please enter your user ID</span>
+      </div>
+      <div class="auth-field" id="loginPasswordField">
+        <label>Password <span class="required">*</span></label>
+        <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+        <span class="error">Please enter your password</span>
+      </div>
+      <div class="auth-field" id="loginCompanyField">
+        <label>Company Name (Optional)</label>
+        <input type="text" id="loginCompany" placeholder="Your company name">
+        <span class="hint">You can change this later in Settings</span>
+      </div>
+      <button type="submit" class="auth-btn success">🔓 Login</button>
+      <div class="auth-footer">
+        Koi problem hai? <a onclick="alert('Software provider se sampark karein')">Contact Provider</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appScreen" style="display: none;">
+
+<header>
+  <h1>
+    <span>📊 GST Accounting Software</span>
+    <span class="header-user">
+      <span class="plan-info-badge" id="planBadge"></span>
+      <span class="user-info">
+        <span class="avatar" id="userAvatar">U</span>
+        <span id="userName">User</span>
+      </span>
+      <button onclick="openProfile()">👤 Profile</button>
+      <button onclick="handleLogout()">🚪 Logout</button>
+    </span>
+  </h1>
+  <nav>
+    <a data-page="dashboard" class="active">🏠 Dashboard</a>
+    <a data-page="parties">👥 Parties</a>
+    <a data-page="items">📦 Items/Products</a>
+    <a data-page="newInvoice">➕ New Invoice</a>
+    <a data-page="invoices">📋 Invoices</a>
+    <a data-page="payments">💰 Payments</a>
+    <a data-page="communication">📢 Communication</a>
+    <a data-page="gstReport">📑 GST Report</a>
+    <a data-page="gstFiling">🧾 GST Filing</a>
+    <a data-page="settings">⚙️ Settings</a>
+  </nav>
+</header>
+
+<main>
+
+  <div class="page active" id="dashboard">
+    <h2>Dashboard</h2>
+    <div class="cards" id="dashCards"></div>
+    <h3>Recent Invoices</h3>
+    <div id="recentInvoices"></div>
+  </div>
+
+  <div class="page" id="parties">
+    <div class="items-header">
+      <h2 style="margin:0">👥 Parties (Customers / Suppliers)</h2>
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="partySearch" placeholder="Search by name, GSTIN, phone...">
+      </div>
+    </div>
+    <form id="partyForm" class="form-grid">
+      <input name="name" placeholder="Party Name *" required>
+      <input name="gstin" placeholder="GSTIN (15 digits)">
+      <input name="phone" placeholder="Phone (10 digits)">
+      <input name="email" type="email" placeholder="Email Address">
+      <input name="state" placeholder="State (e.g. Maharashtra)">
+      <select name="type">
+        <option value="customer">Customer</option>
+        <option value="supplier">Supplier</option>
+      </select>
+      <input name="address" placeholder="Address">
+      <input name="opening_balance" type="number" placeholder="Opening Balance" value="0">
+      <button type="submit">➕ Add Party</button>
+    </form>
+    <div id="partiesList"></div>
+  </div>
+
+  <div class="page" id="items">
+    <div class="items-header">
+      <h2 style="margin:0">📦 Items / Products</h2>
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="itemSearch" placeholder="Search by name or HSN...">
+      </div>
+    </div>
+    <div class="stats-row" id="itemsStats"></div>
+    <div class="item-form-card">
+      <h3>➕ Add New Product / Service</h3>
+      <span class="subtitle">Fill in the details of your item. You can add both products and services.</span>
+      <form id="itemForm">
+        <input type="hidden" id="itemEditId" value="">
+        <div class="form-grid">
+          <div class="field-group" style="grid-column: span 2;">
+            <label>Product/Service Name <span class="required">*</span></label>
+            <input name="name" id="i_name" placeholder="e.g. Cotton T-Shirt, Web Design Service" required>
+            <span class="hint">The name you recognize this item by</span>
+          </div>
+          <div class="field-group">
+            <label>Type <span class="required">*</span></label>
+            <select name="item_type" id="i_type">
+              <option value="product">📦 Product (Goods)</option>
+              <option value="service">🛠️ Service</option>
+            </select>
+            <span class="hint">Goods or Service</span>
+          </div>
+          <div class="field-group relative">
+            <label>HSN / SAC Code</label>
+            <input name="hsn" id="i_hsn" placeholder="e.g. 6109, 998314" autocomplete="off"
+                   oninput="showHSNSuggestions(this)" onblur="hideHSNSuggestions()">
+            <span class="hint">Required for GST invoice</span>
+            <div class="hsn-suggestions" id="hsnSuggestions"></div>
+          </div>
+          <div class="field-group">
+            <label>Unit (UOM) <span class="required">*</span></label>
+            <select name="unit" id="i_unit">
+              <optgroup label="Pieces">
+                <option value="PCS">PCS - Pieces</option>
+                <option value="NOS">NOS - Numbers</option>
+                <option value="SET">SET - Set</option>
+                <option value="PAIR">PAIR - Pair</option>
+                <option value="DOZEN">DOZEN - Dozen</option>
+              </optgroup>
+              <optgroup label="Weight">
+                <option value="KG">KG - Kilogram</option>
+                <option value="GM">GM - Gram</option>
+                <option value="TON">TON - Tonne</option>
+              </optgroup>
+              <optgroup label="Volume">
+                <option value="LTR">LTR - Litre</option>
+                <option value="ML">ML - Millilitre</option>
+              </optgroup>
+              <optgroup label="Length/Area">
+                <option value="MTR">MTR - Meter</option>
+                <option value="FT">FT - Feet</option>
+                <option value="SQFT">SQFT - Sq. Feet</option>
+              </optgroup>
+              <optgroup label="Packing">
+                <option value="BOX">BOX - Box</option>
+                <option value="PKT">PKT - Packet</option>
+                <option value="BAG">BAG - Bag</option>
+                <option value="BTL">BTL - Bottle</option>
+              </optgroup>
+              <optgroup label="Service">
+                <option value="HRS">HRS - Hours</option>
+                <option value="DAY">DAY - Day</option>
+                <option value="JOB">JOB - Job</option>
+              </optgroup>
+            </select>
+            <span class="hint">How you measure it</span>
+          </div>
+          <div class="field-group">
+            <label>Sale Price (₹) <span class="required">*</span></label>
+            <input name="price" id="i_price" type="number" step="0.01" placeholder="0.00" value="0" oninput="updateItemPreview()">
+            <span class="hint">Price without GST</span>
+          </div>
+          <div class="field-group">
+            <label>GST Rate (%) <span class="required">*</span></label>
+            <select name="gst_rate" id="i_gst" onchange="updateItemPreview()">
+              <option value="0">0% - Exempt</option>
+              <option value="5">5% - Essential</option>
+              <option value="12">12% - Standard</option>
+              <option value="18" selected>18% - Most Common</option>
+              <option value="28">28% - Luxury</option>
+            </select>
+            <span class="hint">GST slab rate</span>
+          </div>
+          <div class="field-group">
+            <label>Purchase Price (₹)</label>
+            <input name="purchase_price" id="i_purchase" type="number" step="0.01" placeholder="0.00" value="0">
+            <span class="hint">Optional - cost price</span>
+          </div>
+          <div class="field-group">
+            <label>Opening Stock</label>
+            <input name="stock" id="i_stock" type="number" step="0.01" placeholder="0" value="0">
+            <span class="hint">Currently available quantity</span>
+          </div>
+          <div class="field-group">
+            <label>Low Stock Alert At</label>
+            <input name="low_stock" id="i_low" type="number" step="0.01" placeholder="5" value="5">
+            <span class="hint">Warning threshold</span>
+          </div>
+        </div>
+        <div class="preview-box">
+          <div>
+            <div class="label">👁️ Live Preview</div>
+            <div class="value" id="prev_name">Item Name</div>
+          </div>
+          <div style="text-align:right">
+            <div class="label">Price + GST</div>
+            <div class="value" id="prev_price">₹0.00</div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="success" id="itemSubmitBtn">💾 Save Item</button>
+          <button type="button" class="secondary" onclick="resetItemForm()">🔄 Clear Form</button>
+        </div>
+      </form>
+    </div>
+    <h3>📋 All Items</h3>
+    <div id="itemsList"></div>
+  </div>
+
+  <div class="page" id="newInvoice">
+    <h2>Create Invoice</h2>
+    <form id="invoiceForm">
+      <div class="form-grid">
+        <input name="invoice_no" id="invoice_no" placeholder="Invoice No *" required>
+        <input name="invoice_date" type="date" required>
+        <select name="party_id" id="invoice_party" required>
+          <option value="">-- Select Party --</option>
+        </select>
+        <select name="type" id="invoice_type">
+          <option value="sale">Sale</option>
+          <option value="purchase">Purchase</option>
+        </select>
+      </div>
+      <h3>Items</h3>
+      <table id="itemsTable">
+        <thead>
+          <tr>
+            <th>Item</th><th>HSN</th><th>Qty</th><th>Rate</th><th>GST%</th><th>Amount</th><th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button type="button" class="success small" onclick="addInvoiceRow()">➕ Add Row</button>
+      <div class="totals" id="invoiceTotals">Subtotal: ₹0.00</div>
+      <textarea name="notes" placeholder="Notes / Remarks"></textarea>
+      <button type="submit">💾 Save Invoice</button>
+      <button type="button" onclick="resetInvoiceForm()" class="secondary">🔄 Reset</button>
+    </form>
+  </div>
+
+  <div class="page" id="invoices">
+    <h2>All Invoices</h2>
+    <div id="invoicesList"></div>
+  </div>
+
+  <div class="page" id="payments">
+    <h2>Payments</h2>
+    <form id="paymentForm" class="form-grid">
+      <select name="party_id" id="payment_party" required>
+        <option value="">-- Select Party --</option>
+      </select>
+      <select name="type">
+        <option value="in">Payment In (Received)</option>
+        <option value="out">Payment Out (Paid)</option>
+      </select>
+      <input name="amount" type="number" placeholder="Amount *" required step="0.01">
+      <select name="mode">
+        <option>Cash</option><option>Bank</option><option>UPI</option><option>Cheque</option>
+      </select>
+      <input name="date" type="date" required>
+      <input name="notes" placeholder="Notes">
+      <button type="submit">➕ Add Payment</button>
+    </form>
+    <div id="paymentsList"></div>
+  </div>
+
+  <div class="page" id="communication">
+    <h2>📢 Communication Center</h2>
+    <p style="color: #64748b; margin-bottom: 20px;">
+      Send SMS, Email, WhatsApp messages to your parties. Schedule messages and broadcast to multiple recipients.
+    </p>
+
+    <div class="comm-tabs">
+      <button class="active" data-tab="broadcast" onclick="switchCommTab('broadcast')">📢 Broadcast</button>
+      <button data-tab="scheduled" onclick="switchCommTab('scheduled')">⏰ Scheduled Messages</button>
+      <button data-tab="history" onclick="switchCommTab('history')">📜 Message History</button>
+    </div>
+
+    <div id="broadcastContent" class="comm-content">
+      <div class="cards">
+        <div class="card pink"><span>Total Parties</span><b id="bcTotalParties">0</b></div>
+        <div class="card cyan"><span>With Phone</span><b id="bcWithPhone">0</b></div>
+        <div class="card purple"><span>With Email</span><b id="bcWithEmail">0</b></div>
+        <div class="card orange"><span>Scheduled</span><b id="bcScheduled">0</b></div>
+      </div>
+      <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06);">
+        <h3 style="margin-top: 0;">📢 Quick Broadcast</h3>
+        <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">Send a message to multiple parties at once via SMS, Email or WhatsApp.</p>
+        <button class="broadcast-btn" onclick="openBroadcastModal()" style="padding: 12px 24px; font-size: 14px;">🚀 Start New Broadcast</button>
+      </div>
+    </div>
+
+    <div id="scheduledContent" class="comm-content" style="display: none;">
+      <div id="scheduledList"></div>
+    </div>
+
+    <div id="historyContent" class="comm-content" style="display: none;">
+      <div id="messageHistory"></div>
+    </div>
+  </div>
+
+  <div class="page" id="gstReport">
+    <h2>GSTR-1 Style Report (Sales)</h2>
+    <form id="gstForm" class="form-grid">
+      <input type="date" id="gstFrom" required>
+      <input type="date" id="gstTo" required>
+      <button type="submit">📊 Generate Report</button>
+      <button type="button" onclick="exportGST()" class="success">⬇️ Export CSV</button>
+    </form>
+    <div id="gstSummary"></div>
+    <div id="gstTable"></div>
+  </div>
+
+  <div class="page" id="gstFiling">
+    <h2>🧾 GST Return Filing</h2>
+    <p style="color: #64748b; margin-bottom: 20px;">
+      Generate ready-to-file data for your monthly or quarterly GST returns here. Supports both GSTR-1 (Sales) and GSTR-3B (Summary).
+    </p>
+    <div class="filing-tabs">
+      <button class="active" data-tab="gstr1" onclick="switchFilingTab('gstr1')">📤 GSTR-1 (Sales)</button>
+      <button data-tab="gstr3b" onclick="switchFilingTab('gstr3b')">📊 GSTR-3B (Summary)</button>
+      <button data-tab="history" onclick="switchFilingTab('history')">📁 Filing History</button>
+    </div>
+    <div class="period-selector">
+      <div class="row">
+        <div class="field-group">
+          <label>Return Period</label>
+          <select id="filingPeriodType" onchange="togglePeriodFields()">
+            <option value="monthly">📅 Monthly</option>
+            <option value="quarterly">📆 Quarterly</option>
+            <option value="custom">🔧 Custom Range</option>
+          </select>
+        </div>
+        <div class="field-group" id="monthField">
+          <label>Month</label>
+          <input type="month" id="filingMonth">
+        </div>
+        <div class="field-group" id="quarterField" style="display:none">
+          <label>Quarter</label>
+          <select id="filingQuarter">
+            <option value="Q1">Q1 (Apr-Jun)</option>
+            <option value="Q2">Q2 (Jul-Sep)</option>
+            <option value="Q3">Q3 (Oct-Dec)</option>
+            <option value="Q4">Q4 (Jan-Mar)</option>
+          </select>
+        </div>
+        <div class="field-group" id="fyField" style="display:none">
+          <label>Financial Year</label>
+          <select id="filingFY">
+            <option value="2024-25">2024-25</option>
+            <option value="2025-26">2025-26</option>
+            <option value="2026-27">2026-27</option>
+          </select>
+        </div>
+        <div class="field-group" id="customFromField" style="display:none">
+          <label>From Date</label>
+          <input type="date" id="filingFrom">
+        </div>
+        <div class="field-group" id="customToField" style="display:none">
+          <label>To Date</label>
+          <input type="date" id="filingTo">
+        </div>
+        <div class="field-group">
+          <label>&nbsp;</label>
+          <button onclick="generateFilingData()" style="white-space: nowrap;">📊 Generate Return</button>
+        </div>
+      </div>
+    </div>
+    <div id="gstr1Content" class="filing-content">
+      <div id="gstr1Result">
+        <div class="empty">📅 Select a period and click "Generate Return"</div>
+      </div>
+    </div>
+    <div id="gstr3bContent" class="filing-content" style="display: none;">
+      <div id="gstr3bResult">
+        <div class="empty">📅 Select a period and click "Generate Return"</div>
+      </div>
+    </div>
+    <div id="historyContentFiling" class="filing-content" style="display: none;">
+      <div id="filingHistoryResult"></div>
+    </div>
+  </div>
+
+  <div class="page" id="settings">
+    <h2>Settings</h2>
+    <div class="card" style="padding: 24px;">
+      <h3>Company Details</h3>
+      <div class="form-grid">
+        <input id="s_company" placeholder="Company Name">
+        <input id="s_gstin" placeholder="Company GSTIN">
+        <input id="s_phone" placeholder="Phone">
+        <input id="s_email" type="email" placeholder="Company Email">
+        <input id="s_address" placeholder="Address">
+        <input id="s_state" placeholder="State (e.g. Maharashtra)">
+      </div>
+      <button onclick="saveSettings()">💾 Save Settings</button>
+      <hr style="margin: 24px 0; border: none; border-top: 1px solid #e2e8f0;">
+      <h3>📱 SMS Settings</h3>
+      <div class="form-grid">
+        <div class="field-group">
+          <label>SMS Provider</label>
+          <select id="s_sms_provider">
+            <option value="textbelt">Textbelt (Free - 1 SMS/day)</option>
+            <option value="manual">Manual (Open SMS App)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Textbelt API Key</label>
+          <input id="s_sms_key" placeholder="textbelt (free) or your API key">
+          <span class="hint">Use "textbelt" for free tier</span>
+        </div>
+        <div class="field-group">
+          <label>Default Country Code</label>
+          <input id="s_sms_country" value="91" placeholder="91">
+          <span class="hint">Without + sign</span>
+        </div>
+      </div>
+      <button onclick="saveSMSSettings()" class="sms-btn">💾 Save SMS Settings</button>
+
+      <hr style="margin: 24px 0; border: none; border-top: 1px solid #e2e8f0;">
+      <h3>📧 Email Settings</h3>
+      <div class="form-grid">
+        <div class="field-group">
+          <label>Email Provider</label>
+          <select id="s_email_provider">
+            <option value="mailto">Mailto (Open Email Client)</option>
+            <option value="emailjs">EmailJS (Send Directly)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>EmailJS Service ID</label>
+          <input id="s_emailjs_service" placeholder="service_xxxxxxx">
+        </div>
+        <div class="field-group">
+          <label>EmailJS Template ID</label>
+          <input id="s_emailjs_template" placeholder="template_xxxxxxx">
+        </div>
+        <div class="field-group">
+          <label>EmailJS Public Key</label>
+          <input id="s_emailjs_public" placeholder="Your Public Key">
+        </div>
+      </div>
+      <button onclick="saveEmailSettings()" class="email-btn">💾 Save Email Settings</button>
+
+      <hr style="margin: 24px 0; border: none; border-top: 1px solid #e2e8f0;">
+      <h3>Subscription</h3>
+      <div style="background: #eff6ff; padding: 16px; border-radius: 10px; border-left: 4px solid #3b82f6; margin-bottom: 16px;" id="subInfoBox">
+        Loading...
+      </div>
+
+      <hr style="margin: 24px 0; border: none; border-top: 1px solid #e2e8f0;">
+      <h3>Account</h3>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button onclick="openProfile()" class="secondary">👤 Edit Profile</button>
+        <button onclick="openChangePassword()" class="secondary">🔑 Change Password</button>
+      </div>
+      <hr style="margin: 24px 0; border: none; border-top: 1px solid #e2e8f0;">
+      <h3>Data Management</h3>
+      <button onclick="exportData()" class="success">⬇️ Export All Data (JSON)</button>
+      <button onclick="document.getElementById('importFile').click()" style="background:#f59e0b">⬆️ Import Data</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      <button onclick="resetAll()" class="danger" style="margin-top: 12px;">🗑️ Reset All Data</button>
+    </div>
+  </div>
+
+</main>
+
+</div>
+
+<!-- PRINT MODAL -->
+<div class="modal-overlay" id="printModal">
+  <div class="modal">
+    <div id="printContent"></div>
+    <div class="no-print" style="margin-top: 16px; text-align: right;" id="printModalActions">
+      <button onclick="window.print()">🖨️ Print</button>
+      <button onclick="closeModal()" class="secondary">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal delete-modal">
+    <div class="icon">⚠️</div>
+    <h3>Delete Item?</h3>
+    <p>Are you sure you want to delete this item?<span class="item-name" id="deleteItemName"></span></p>
+    <div class="actions">
+      <button class="cancel-btn" onclick="closeDeleteModal()">❌ Cancel</button>
+      <button class="delete-confirm-btn" onclick="actuallyDeleteItem()">🗑️ Yes, Delete</button>
+    </div>
+    <input type="hidden" id="deleteItemId">
+  </div>
+</div>
+
+<!-- PARTY DELETE MODAL -->
+<div class="modal-overlay" id="deletePartyModal">
+  <div class="modal delete-modal">
+    <div class="icon">⚠️</div>
+    <h3>Delete Party?</h3>
+    <p>Are you sure you want to delete this party?<span class="item-name" id="deletePartyName"></span></p>
+    <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;">ℹ️ Existing invoices linked to this party will remain.</p>
+    <div class="actions">
+      <button class="cancel-btn" onclick="closeDeletePartyModal()">❌ Cancel</button>
+      <button class="delete-confirm-btn" onclick="actuallyDeleteParty()">🗑️ Yes, Delete</button>
+    </div>
+    <input type="hidden" id="deletePartyId">
+  </div>
+</div>
+
+<!-- PARTY EDIT MODAL -->
+<div class="modal-overlay" id="partyEditModal">
+  <div class="modal party-edit-modal">
+    <div class="pe-header">
+      <div class="pe-icon">✏️</div>
+      <div class="pe-info">
+        <h3>Edit Party Details</h3>
+        <p id="pe_subtitle">Update the party information below</p>
+      </div>
+    </div>
+
+    <div class="pe-stats" id="pe_stats"></div>
+
+    <input type="hidden" id="pe_id">
+
+    <div class="pe-grid">
+      <div class="pe-field" style="grid-column: span 2;">
+        <label>Party Name <span class="required">*</span></label>
+        <input type="text" id="pe_name" placeholder="e.g. ABC Traders">
+      </div>
+
+      <div class="pe-field">
+        <label>Type <span class="required">*</span></label>
+        <div class="pe-type-toggle">
+          <label>
+            <input type="radio" name="pe_type" value="customer" id="pe_type_customer">
+            <span>👤 Customer</span>
+          </label>
+          <label>
+            <input type="radio" name="pe_type" value="supplier" id="pe_type_supplier">
+            <span>🏢 Supplier</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="pe-field">
+        <label>GSTIN</label>
+        <input type="text" id="pe_gstin" placeholder="15-digit GSTIN" maxlength="15">
+        <span class="hint">Optional - for B2B transactions</span>
+      </div>
+
+      <div class="pe-field">
+        <label>Phone Number</label>
+        <input type="tel" id="pe_phone" placeholder="10-digit mobile" maxlength="10">
+        <span class="hint">For SMS / WhatsApp</span>
+      </div>
+
+      <div class="pe-field">
+        <label>Email Address</label>
+        <input type="email" id="pe_email" placeholder="party@email.com">
+        <span class="hint">For email communication</span>
+      </div>
+
+      <div class="pe-field">
+        <label>State</label>
+        <input type="text" id="pe_state" placeholder="e.g. Maharashtra">
+        <span class="hint">For IGST vs CGST+SGST</span>
+      </div>
+
+      <div class="pe-field">
+        <label>Opening Balance (₹)</label>
+        <input type="number" id="pe_opening_balance" step="0.01" placeholder="0.00" value="0">
+        <span class="hint">Balance at start</span>
+      </div>
+
+      <div class="pe-field" style="grid-column: span 2;">
+        <label>Address</label>
+        <input type="text" id="pe_address" placeholder="Street, City, PIN Code">
+      </div>
+    </div>
+
+    <div class="pe-actions">
+      <button class="cancel-btn" onclick="closePartyEditModal()">❌ Cancel</button>
+      <button class="success" onclick="savePartyEdit()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- FILING MODAL -->
+<div class="modal-overlay" id="filingModal">
+  <div class="modal delete-modal">
+    <div class="icon">🧾</div>
+    <h3>Mark as Filed?</h3>
+    <p>Do you want to mark this return as <b>FILED</b>?<span class="item-name" id="filingDetails" style="color: #1e3a8a;"></span></p>
+    <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;">ℹ️ This is only for record keeping.</p>
+    <div class="actions">
+      <button class="cancel-btn" onclick="closeFilingModal()">❌ Cancel</button>
+      <button class="delete-confirm-btn" style="background:#10b981" onclick="confirmFiling()">✅ Yes, Mark Filed</button>
+    </div>
+    <input type="hidden" id="filingReturnType">
+    <input type="hidden" id="filingPeriodKey">
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal" style="max-width: 500px;">
+    <h3>👤 Edit Profile</h3>
+    <div class="profile-field">
+      <label>Full Name</label>
+      <input type="text" id="prof_name">
+    </div>
+    <div class="profile-field">
+      <label>User ID</label>
+      <input type="text" id="prof_email" disabled style="background:#f1f5f9; cursor: not-allowed;">
+    </div>
+    <div class="profile-field">
+      <label>Phone</label>
+      <input type="tel" id="prof_phone" maxlength="10">
+    </div>
+    <div class="profile-field">
+      <label>Company Name</label>
+      <input type="text" id="prof_company">
+    </div>
+    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+      <button class="secondary" onclick="closeProfile()">Cancel</button>
+      <button class="success" onclick="saveProfile()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-overlay" id="passwordModal">
+  <div class="modal" style="max-width: 440px;">
+    <h3>🔑 Change Password</h3>
+    <div class="profile-field">
+      <label>Current Password</label>
+      <input type="password" id="pwd_current" placeholder="Enter your current password">
+    </div>
+    <div class="profile-field">
+      <label>New Password</label>
+      <input type="password" id="pwd_new" placeholder="Minimum 6 characters">
+    </div>
+    <div class="profile-field">
+      <label>Confirm New Password</label>
+      <input type="password" id="pwd_confirm" placeholder="Re-enter the new password">
+    </div>
+    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+      <button class="secondary" onclick="closeChangePassword()">Cancel</button>
+      <button class="success" onclick="changePassword()">🔑 Change</button>
+    </div>
+  </div>
+</div>
+
+<!-- WHATSAPP MODAL -->
+<div class="modal-overlay" id="whatsappModal">
+  <div class="modal wa-modal">
+    <div class="wa-header">
+      <div class="wa-icon">📱</div>
+      <div class="wa-info">
+        <h3 id="wa_partyName">Party Name</h3>
+        <p id="wa_partyPhone">📞 +91 XXXXXXXXXX</p>
+      </div>
+    </div>
+
+    <div id="wa_content"></div>
+
+    <div class="wa-actions">
+      <button class="secondary" onclick="closeWhatsAppModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- SMS MODAL -->
+<div class="modal-overlay" id="smsModal">
+  <div class="modal sms-modal">
+    <div class="sms-header">
+      <div class="sms-icon">💬</div>
+      <div class="sms-info">
+        <h3 id="sms_partyName">Party Name</h3>
+        <p id="sms_partyPhone">📞 +91 XXXXXXXXXX</p>
+      </div>
+    </div>
+
+    <div id="sms_status" class="sms-status"></div>
+
+    <div class="sms-templates">
+      <button onclick="applySMSTemplate('invoice')">📄 Invoice Summary</button>
+      <button onclick="applySMSTemplate('reminder')">🔔 Payment Reminder</button>
+      <button onclick="applySMSTemplate('thankyou')">🙏 Thank You</button>
+      <button onclick="applySMSTemplate('custom')">✏️ Custom</button>
+    </div>
+
+    <textarea id="sms_message" placeholder="Type your message here..." oninput="updateSMSCharCount()"></textarea>
+    <div class="sms-char-count"><span id="sms_charCount">0</span> characters | <span id="sms_segments">1</span> SMS</div>
+
+    <div class="sms-send-options">
+      <button class="sms-btn" onclick="sendViaTextbelt()">📤 Send via Textbelt (API)</button>
+      <button class="secondary" onclick="sendViaDeviceSMS()">📱 Open SMS App</button>
+      <button class="whatsapp" onclick="switchToWhatsAppFromSMS()">📱 Send via WhatsApp</button>
+    </div>
+
+    <div class="sms-actions">
+      <button class="schedule-btn" onclick="openScheduleModal('sms')">⏰ Schedule</button>
+      <button class="secondary" onclick="closeSMSModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL MODAL -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal email-modal">
+    <div class="email-header">
+      <div class="email-icon">📧</div>
+      <div class="email-info">
+        <h3 id="email_partyName">Party Name</h3>
+        <p id="email_partyEmail">✉️ email@example.com</p>
+      </div>
+    </div>
+
+    <div id="email_status" class="sms-status"></div>
+
+    <div class="email-templates">
+      <button onclick="applyEmailTemplate('invoice')">📄 Invoice</button>
+      <button onclick="applyEmailTemplate('reminder')">🔔 Reminder</button>
+      <button onclick="applyEmailTemplate('thankyou')">🙏 Thank You</button>
+      <button onclick="applyEmailTemplate('custom')">✏️ Custom</button>
+    </div>
+
+    <div class="email-field">
+      <label>To</label>
+      <input type="email" id="email_to" placeholder="recipient@email.com">
+    </div>
+    <div class="email-field">
+      <label>Subject</label>
+      <input type="text" id="email_subject" placeholder="Email subject">
+    </div>
+    <div class="email-field">
+      <label>Message</label>
+      <textarea id="email_message" placeholder="Type your email message here..."></textarea>
+    </div>
+
+    <div class="email-send-options">
+      <button class="email-btn" onclick="sendViaEmailJS()">📤 Send via EmailJS</button>
+      <button class="secondary" onclick="sendViaMailto()">📧 Open Email Client</button>
+    </div>
+
+    <div class="email-actions">
+      <button class="schedule-btn" onclick="openScheduleModal('email')">⏰ Schedule</button>
+      <button class="secondary" onclick="closeEmailModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- BROADCAST MODAL -->
+<div class="modal-overlay" id="broadcastModal">
+  <div class="modal broadcast-modal">
+    <div class="bc-header">
+      <div class="bc-icon">📢</div>
+      <div class="bc-info">
+        <h3>Broadcast Message</h3>
+        <p>Send to multiple parties at once</p>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; text-transform: uppercase;">Channel</label>
+      <div class="bc-channel">
+        <label>
+          <input type="radio" name="bc_channel" value="sms" checked>
+          <span>💬 SMS</span>
+        </label>
+        <label>
+          <input type="radio" name="bc_channel" value="email">
+          <span>📧 Email</span>
+        </label>
+        <label>
+          <input type="radio" name="bc_channel" value="whatsapp">
+          <span>📱 WhatsApp</span>
+        </label>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; text-transform: uppercase;">
+        Select Recipients (<span id="bc_selectedCount">0</span> selected)
+      </label>
+      <div class="bc-toolbar">
+        <button class="small secondary" onclick="bcSelectAll(true)">✅ Select All</button>
+        <button class="small secondary" onclick="bcSelectAll(false)">❌ Deselect All</button>
+        <button class="small secondary" onclick="bcSelectCustomers()">👥 Customers Only</button>
+        <button class="small secondary" onclick="bcSelectWithPhone()">📱 With Phone</button>
+        <button class="small secondary" onclick="bcSelectWithEmail()">✉️ With Email</button>
+      </div>
+      <div class="bc-recipients" id="bc_recipients"></div>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; text-transform: uppercase;">Subject (for Email)</label>
+      <input type="text" id="bc_subject" placeholder="Email subject" style="width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; text-transform: uppercase;">Message</label>
+      <textarea id="bc_message" placeholder="Type your broadcast message here... Use {name} for party name."></textarea>
+      <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">💡 Use <b>{name}</b> for party name, <b>{company}</b> for your company name</div>
+    </div>
+
+    <div class="bc-progress" id="bc_progress">
+      <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #1e3a8a;">
+        <span id="bc_progressText">Sending...</span>
+        <span id="bc_progressCount">0 / 0</span>
+      </div>
+      <div class="bc-progress-bar"><div class="fill" id="bc_progressFill"></div></div>
+    </div>
+
+    <div class="bc-actions">
+      <button class="secondary" onclick="closeBroadcastModal()">Cancel</button>
+      <button class="schedule-btn" onclick="openScheduleModal('broadcast')">⏰ Schedule</button>
+      <button class="broadcast-btn" onclick="sendBroadcast()">🚀 Send Broadcast</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDULE MODAL -->
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal schedule-modal">
+    <div class="sch-header">
+      <div class="sch-icon">⏰</div>
+      <div class="sch-info">
+        <h3>Schedule Message</h3>
+        <p id="sch_messageType">Schedule your message for later</p>
+      </div>
+    </div>
+
+    <div class="sch-field">
+      <label>Schedule Date</label>
+      <input type="date" id="sch_date">
+    </div>
+    <div class="sch-field">
+      <label>Schedule Time</label>
+      <input type="time" id="sch_time">
+    </div>
+    <div class="sch-quick">
+      <button onclick="quickSchedule(15)">+15 min</button>
+      <button onclick="quickSchedule(30)">+30 min</button>
+      <button onclick="quickSchedule(60)">+1 hour</button>
+      <button onclick="quickSchedule(180)">+3 hours</button>
+      <button onclick="quickSchedule(1440)">Tomorrow</button>
+    </div>
+
+    <div class="sch-field" style="margin-top: 16px;">
+      <label>Preview</label>
+      <div style="background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 13px; color: #475569; border-left: 3px solid #06b6d4;" id="sch_preview">
+        No message selected
+      </div>
+    </div>
+
+    <div class="sch-actions">
+      <button class="secondary" onclick="closeScheduleModal()">Cancel</button>
+      <button class="schedule-btn" onclick="confirmSchedule()">⏰ Schedule Message</button>
+    </div>
+
+    <input type="hidden" id="sch_type">
+    <input type="hidden" id="sch_data">
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// SOFTWARE PROVIDER CONTACT INFO
+// ============================================================
+const SOFTWARE_PROVIDER = {
+  name: 'Sume-Tech Software Solutions',
+  phone: '+91 7709497236 ',
+  whatsapp: '917766007236',
+  email: 'sumetech98@gmial.com'
+};
+
+// ============================================================
+// SUBSCRIPTION PLAN TEMPLATES
+// ============================================================
+const PLAN_TEMPLATES = [
+  { userId: 'user1month', password: 'month1pass', plan: '1 Month', planDays: 30 },
+  { userId: 'user6months', password: 'halfyearpass', plan: '6 Months', planDays: 180 },
+  { userId: 'user1year', password: 'yearpass', plan: '1 Year', planDays: 365 },
+  { userId: 'admin', password: 'admin123', plan: '1 Year (Demo)', planDays: 30 }
+];
+
+const SUBSCRIPTION_KEY = 'gst_subscriptions';
+const AUTH_SESSION_KEY = 'gst_session_v2';
+const DATA_PREFIX = 'gst_data_v2_';
+
+function getSubscriptions() {
+  try {
+    const raw = localStorage.getItem(SUBSCRIPTION_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) { return {}; }
+}
+
+function saveSubscriptions(subs) {
+  localStorage.setItem(SUBSCRIPTION_KEY, JSON.stringify(subs));
+}
+
+function getOrCreateSubscription(user) {
+  const subs = getSubscriptions();
+  const key = user.userId;
+  if (subs[key]) return subs[key];
+
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const expiry = new Date(start);
+  expiry.setDate(expiry.getDate() + user.planDays);
+  expiry.setHours(23, 59, 59, 999);
+
+  const subscription = {
+    userId: user.userId,
+    plan: user.plan,
+    planDays: user.planDays,
+    startDate: start.toISOString(),
+    expiryDate: expiry.toISOString(),
+    activatedAt: new Date().toISOString()
+  };
+  subs[key] = subscription;
+  saveSubscriptions(subs);
+  return subscription;
+}
+
+function isSubscriptionExpired(sub) {
+  return new Date() > new Date(sub.expiryDate);
+}
+
+function getDaysRemaining(sub) {
+  const expiry = new Date(sub.expiryDate);
+  const now = new Date();
+  if (now > expiry) return 0;
+  return Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+}
+
+function fmtSubDate(d) {
+  if (typeof d === 'string') d = new Date(d);
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function findUser(userId, password) {
+  return PLAN_TEMPLATES.find(u => u.userId === userId && u.password === password);
+}
+
+// ============================================================
+// AUTH LAYER (Subscription-based)
+// ============================================================
+const Auth = {
+  setSession(userId) {
+    localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ userId, loginAt: new Date().toISOString() }));
+  },
+  getSession() {
+    try { return JSON.parse(localStorage.getItem(AUTH_SESSION_KEY) || 'null'); }
+    catch { return null; }
+  },
+  getCurrentUser() {
+    const session = this.getSession();
+    if (!session) return null;
+    const template = PLAN_TEMPLATES.find(u => u.userId === session.userId);
+    if (!template) return null;
+    return template;
+  },
+  logout() { localStorage.removeItem(AUTH_SESSION_KEY); },
+  initUserData(userId) {
+    const key = DATA_PREFIX + userId;
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, JSON.stringify({
+        company: { name: '', gstin: '', phone: '', email: '', address: '', state: 'Maharashtra' },
+        parties: [], items: [], invoices: [], payments: [], filings: [],
+        smsSettings: { provider: 'textbelt', apiKey: 'textbelt', countryCode: '91' },
+        emailSettings: { provider: 'mailto', serviceId: '', templateId: '', publicKey: '' },
+        scheduledMessages: [], messageHistory: []
+      }));
+    }
+  },
+  getUserData(userId) {
+    try { return JSON.parse(localStorage.getItem(DATA_PREFIX + userId) || '{}'); }
+    catch { return {}; }
+  },
+  saveUserData(userId, data) {
+    localStorage.setItem(DATA_PREFIX + userId, JSON.stringify(data));
+  }
+};
+
+let CURRENT_USER = null;
+let CURRENT_SUBSCRIPTION = null;
+let smsSettings = { provider: 'textbelt', apiKey: 'textbelt', countryCode: '91' };
+let emailSettings = { provider: 'mailto', serviceId: '', templateId: '', publicKey: '' };
+
+const DB = {
+  _all() { return CURRENT_USER ? Auth.getUserData(CURRENT_USER.userId) : {}; },
+  _save(data) { if (CURRENT_USER) Auth.saveUserData(CURRENT_USER.userId, data); },
+  get(key) { return this._all()[key] || []; },
+  set(key, val) { const all = this._all(); all[key] = val; this._save(all); },
+  getObj(key) { return this._all()[key] || {}; },
+  setObj(key, val) { const all = this._all(); all[key] = val; this._save(all); },
+  nextId(key) {
+    const list = this.get(key);
+    return list.length ? Math.max(...list.map(x => x.id)) + 1 : 1;
+  }
+};
+
+let company = { name: '', gstin: '', phone: '', email: '', address: '', state: 'Maharashtra' };
+
+// ============================================================
+// SUBSCRIPTION LOGIN HANDLER
+// ============================================================
+function handleSubscriptionLogin(e) {
+  e.preventDefault();
+  const userId = document.getElementById('loginUserId').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  const companyName = document.getElementById('loginCompany').value.trim();
+
+  let hasError = false;
+  if (!userId) { setFieldError('loginUserIdField', true); hasError = true; }
+  else setFieldError('loginUserIdField', false);
+  if (!password) { setFieldError('loginPasswordField', true); hasError = true; }
+  else setFieldError('loginPasswordField', false);
+  if (hasError) return;
+
+  const user = findUser(userId, password);
+  if (!user) {
+    toast('❌ Invalid User ID or Password!', true);
+    setFieldError('loginPasswordField', true);
+    return;
+  }
+
+  const subscription = getOrCreateSubscription(user);
+
+  if (isSubscriptionExpired(subscription)) {
+    showExpiredScreen(subscription);
+    return;
+  }
+
+  Auth.setSession(user.userId);
+  CURRENT_USER = user;
+  CURRENT_SUBSCRIPTION = subscription;
+
+  // Store company name if provided
+  if (companyName) {
+    Auth.initUserData(user.userId);
+    const userData = Auth.getUserData(user.userId);
+    if (!userData.company) userData.company = {};
+    userData.company.name = companyName;
+    Auth.saveUserData(user.userId, userData);
+  }
+
+  loadUserApp(user, subscription);
+  toast('✅ Welcome, ' + user.userId + '!');
+}
+
+function setFieldError(fieldId, hasError) {
+  const f = document.getElementById(fieldId);
+  if (f) f.classList.toggle('error', hasError);
+}
+
+function showExpiredScreen(subscription) {
+  const authScreen = document.getElementById('authScreen');
+  const container = document.getElementById('authContainer');
+  const start = new Date(subscription.startDate);
+  const expiry = new Date(subscription.expiryDate);
+
+  container.outerHTML = `
+    <div class="expired-card" id="authContainer">
+      <div class="expired-icon">⛔</div>
+      <div class="plan-badge">${subscription.plan} PLAN</div>
+      <h2>Subscription Expired</h2>
+      <p style="color:#64748b;font-size:14px;">
+        Aapka subscription plan <strong>${fmtSubDate(expiry)}</strong> ko khatam ho gaya hai.
+      </p>
+      <div class="expired-info">
+        <div>👤 <strong>User ID:</strong> ${subscription.userId}</div>
+        <div>📦 <strong>Plan:</strong> ${subscription.plan} (${subscription.planDays} days)</div>
+        <div>📅 <strong>Start Date:</strong> ${fmtSubDate(start)}</div>
+        <div>🔚 <strong>Expiry Date:</strong> ${fmtSubDate(expiry)}</div>
+        <div>❌ <strong>Status:</strong> <span style="color:#dc2626;font-weight:600;">Expired</span></div>
+      </div>
+      <div class="contact-box">
+        <h3>📞 Software Provider Se Sampark Karein</h3>
+        <p>Apna plan renew karwane ke liye niche diye gaye details par contact karein:</p>
+        <div class="contact-item">
+          <span class="icon">🏢</span>
+          <span><strong>${SOFTWARE_PROVIDER.name}</strong></span>
+        </div>
+        <div class="contact-item">
+          <span class="icon">📞</span>
+          <span><a href="tel:${SOFTWARE_PROVIDER.phone.replace(/\s/g, '')}">${SOFTWARE_PROVIDER.phone}</a></span>
+        </div>
+        <div class="contact-item">
+          <span class="icon">📱</span>
+          <span><a href="https://wa.me/${SOFTWARE_PROVIDER.whatsapp}" target="_blank">WhatsApp: ${SOFTWARE_PROVIDER.phone}</a></span>
+        </div>
+        <div class="contact-item">
+          <span class="icon">✉️</span>
+          <span><a href="mailto:${SOFTWARE_PROVIDER.email}">${SOFTWARE_PROVIDER.email}</a></span>
+        </div>
+      </div>
+      <button class="auth-btn success" onclick="location.reload()">🔄 Back to Login</button>
+      <div class="logout-link" onclick="location.reload()">← Try another account</div>
+    </div>
+  `;
+  authScreen.classList.remove('hidden');
+}
+
+function updatePlanBadge(subscription) {
+  const badge = document.getElementById('planBadge');
+  if (!badge || !subscription) return;
+  const days = getDaysRemaining(subscription);
+  const expiry = new Date(subscription.expiryDate);
+  let cls = 'plan-info-badge';
+  let icon = '✅';
+  if (days <= 7) { cls += ' danger'; icon = '⚠️'; }
+  else if (days <= 30) { cls += ' warning'; icon = '⏳'; }
+  badge.className = cls;
+  badge.innerHTML = `${icon} ${subscription.plan} • ${days}d left`;
+  badge.title = `Expires on ${fmtSubDate(expiry)}`;
+}
+
+// Auto-check subscription expiry every minute
+setInterval(() => {
+  if (!CURRENT_USER || !CURRENT_SUBSCRIPTION) return;
+  const subs = getSubscriptions();
+  const sub = subs[CURRENT_USER.userId];
+  if (!sub) return;
+  if (isSubscriptionExpired(sub)) {
+    alert('⛔ Aapka subscription plan expire ho gaya hai. Software provider se sampark karein.');
+    Auth.logout();
+    location.reload();
+  } else {
+    updatePlanBadge(sub);
+  }
+}, 60 * 1000);
+
+function handleLogout() {
+  if (!confirm('Do you want to logout?')) return;
+  Auth.logout();
+  location.reload();
+}
+
+function checkAuth() {
+  const session = Auth.getSession();
+  if (!session) return false;
+  const user = PLAN_TEMPLATES.find(u => u.userId === session.userId);
+  if (!user) { Auth.logout(); return false; }
+  const subs = getSubscriptions();
+  const sub = subs[user.userId];
+  if (!sub || isSubscriptionExpired(sub)) {
+    Auth.logout();
+    if (sub) showExpiredScreen(sub);
+    return false;
+  }
+  CURRENT_USER = user;
+  CURRENT_SUBSCRIPTION = sub;
+  return true;
+}
+
+function loadUserApp(user, subscription) {
+  Auth.initUserData(user.userId);
+  company = DB.getObj('company') || {
+    name: user.userId || '', gstin: '', phone: '', email: '', address: '', state: 'Maharashtra'
+  };
+  smsSettings = DB.getObj('smsSettings') || { provider: 'textbelt', apiKey: 'textbelt', countryCode: '91' };
+  emailSettings = DB.getObj('emailSettings') || { provider: 'mailto', serviceId: '', templateId: '', publicKey: '' };
+
+  document.getElementById('userName').textContent = user.userId;
+  document.getElementById('userAvatar').textContent = user.userId.charAt(0).toUpperCase();
+  updatePlanBadge(subscription);
+
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appScreen').style.display = 'block';
+
+  renderDashboard();
+  prepareInvoiceForm();
+  preparePaymentForm();
+  updateItemPreview();
+  initFilingPage();
+  loadSettings();
+  startScheduleChecker();
+  updateCommStats();
+}
+
+// ============ PROFILE ============
+function openProfile() {
+  if (!CURRENT_USER) return;
+  document.getElementById('prof_name').value = company.name || CURRENT_USER.userId || '';
+  document.getElementById('prof_email').value = CURRENT_USER.userId || '';
+  document.getElementById('prof_phone').value = company.phone || '';
+  document.getElementById('prof_company').value = company.name || '';
+  document.getElementById('profileModal').classList.add('active');
+}
+function closeProfile() { document.getElementById('profileModal').classList.remove('active'); }
+function saveProfile() {
+  const name = document.getElementById('prof_name').value.trim();
+  const phone = document.getElementById('prof_phone').value.trim();
+  const companyName = document.getElementById('prof_company').value.trim();
+  if (phone && !/^\d{10}$/.test(phone)) return toast('Phone must be 10 digits', true);
+  if (companyName) {
+    company.name = companyName;
+    DB.setObj('company', company);
+  }
+  if (phone) {
+    company.phone = phone;
+    DB.setObj('company', company);
+  }
+  if (name) {
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+  }
+  closeProfile();
+  toast('✅ Profile updated');
+  loadSettings();
+}
+function openChangePassword() {
+  document.getElementById('pwd_current').value = '';
+  document.getElementById('pwd_new').value = '';
+  document.getElementById('pwd_confirm').value = '';
+  document.getElementById('passwordModal').classList.add('active');
+}
+function closeChangePassword() { document.getElementById('passwordModal').classList.remove('active'); }
+function changePassword() {
+  const current = document.getElementById('pwd_current').value;
+  const newPwd = document.getElementById('pwd_new').value;
+  const confirm = document.getElementById('pwd_confirm').value;
+  if (!current) return toast('Please enter your current password', true);
+  if (!newPwd || newPwd.length < 6) return toast('New password must be at least 6 characters', true);
+  if (newPwd !== confirm) return toast('New passwords do not match', true);
+  if (current !== CURRENT_USER.password) return toast('Current password is incorrect', true);
+  toast('ℹ️ Password change ke liye software provider se sampark karein');
+  closeChangePassword();
+}
+
+// ============ UTILITIES ============
+function toast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.style.display = 'block';
+  if (window._toastTimer) clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.style.display = 'none', 2800);
+}
+function fmt(n) { return '₹' + (parseFloat(n) || 0).toFixed(2); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function esc(s) { return (s || '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function escAttr(s) { return (s || '').toString().replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+function formatWhatsAppNumber(phone) {
+  if (!phone) return '';
+  let digits = (phone + '').replace(/\D/g, '');
+  if (digits.length === 10) digits = '91' + digits;
+  else if (digits.length === 11 && digits.startsWith('0')) digits = '91' + digits.slice(1);
+  else if (digits.length === 12 && digits.startsWith('91')) { }
+  else if (digits.length > 12) { digits = '91' + digits.slice(-10); }
+  return digits;
+}
+
+function formatSMSNumber(phone) {
+  if (!phone) return '';
+  let digits = (phone + '').replace(/\D/g, '');
+  const cc = smsSettings.countryCode || '91';
+  if (digits.length === 10) digits = cc + digits;
+  else if (digits.length === 11 && digits.startsWith('0')) digits = cc + digits.slice(1);
+  else if (digits.length > 12) { digits = cc + digits.slice(-10); }
+  return digits;
+}
+
+// ============ PDF GENERATION ============
+function generateInvoicePDF(inv, party, autoDownload = true) {
+  if (!window.jspdf) {
+    toast('PDF library load nahi hui. Internet check karo.', true);
+    return null;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const companyName = company.name || 'Your Company';
+
+  doc.setFillColor(30, 58, 138);
+  doc.rect(0, 0, pageWidth, 25, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('TAX INVOICE', pageWidth / 2, 16, { align: 'center' });
+
+  doc.setTextColor(30, 58, 138);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(companyName, 14, 35);
+
+  doc.setTextColor(80, 80, 80);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  let y = 41;
+  if (company.address) { doc.text(company.address, 14, y); y += 5; }
+  if (company.gstin) { doc.text('GSTIN: ' + company.gstin, 14, y); y += 5; }
+  if (company.phone) { doc.text('Phone: ' + company.phone, 14, y); y += 5; }
+  if (company.email) { doc.text('Email: ' + company.email, 14, y); y += 5; }
+  if (company.state) { doc.text('State: ' + company.state, 14, y); y += 5; }
+
+  doc.setFontSize(10);
+  doc.setTextColor(30, 58, 138);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Invoice Details', pageWidth - 14, 35, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(60, 60, 60);
+  doc.setFontSize(9);
+  doc.text('Invoice No: ' + inv.invoice_no, pageWidth - 14, 41, { align: 'right' });
+  doc.text('Date: ' + inv.invoice_date, pageWidth - 14, 46, { align: 'right' });
+  doc.text('Type: ' + inv.type.toUpperCase(), pageWidth - 14, 51, { align: 'right' });
+
+  const billY = Math.max(y, 58) + 4;
+  doc.setDrawColor(200, 200, 200);
+  doc.setFillColor(241, 245, 249);
+  doc.rect(14, billY, pageWidth - 28, 26, 'F');
+  doc.setTextColor(30, 58, 138);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Bill To:', 18, billY + 7);
+  doc.setTextColor(50, 50, 50);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(party.name || '-', 18, billY + 13);
+  let by = billY + 18;
+  if (party.address) { doc.text(party.address, 18, by); by += 4; }
+  if (party.gstin) { doc.text('GSTIN: ' + party.gstin, 18, by); by += 4; }
+  if (party.phone) { doc.text('Phone: ' + party.phone, 18, by); }
+
+  const tableBody = inv.items.map((it, idx) => [
+    idx + 1, it.name, it.hsn || '-', it.qty,
+    'Rs. ' + (parseFloat(it.rate) || 0).toFixed(2),
+    it.gst_rate + '%',
+    'Rs. ' + (parseFloat(it.amount) || 0).toFixed(2)
+  ]);
+
+  doc.autoTable({
+    startY: billY + 32,
+    head: [['#', 'Item', 'HSN/SAC', 'Qty', 'Rate', 'GST%', 'Amount']],
+    body: tableBody,
+    theme: 'grid',
+    headStyles: { fillColor: [30, 58, 138], textColor: 255, fontSize: 9, fontStyle: 'bold' },
+    bodyStyles: { fontSize: 9 },
+    columnStyles: {
+      0: { cellWidth: 10, halign: 'center' },
+      1: { cellWidth: 55 },
+      2: { cellWidth: 22, halign: 'center' },
+      3: { cellWidth: 15, halign: 'center' },
+      4: { cellWidth: 25, halign: 'right' },
+      5: { cellWidth: 15, halign: 'center' },
+      6: { cellWidth: 28, halign: 'right' }
+    },
+    margin: { left: 14, right: 14 }
+  });
+
+  let finalY = doc.lastAutoTable.finalY + 8;
+  const totalX = pageWidth - 14;
+  const labelX = pageWidth - 80;
+
+  doc.setFontSize(10);
+  doc.setTextColor(60, 60, 60);
+  doc.setFont('helvetica', 'normal');
+
+  doc.text('Subtotal:', labelX, finalY);
+  doc.text('Rs. ' + (parseFloat(inv.subtotal) || 0).toFixed(2), totalX, finalY, { align: 'right' });
+  finalY += 6;
+
+  if (inv.cgst > 0) {
+    doc.text('CGST:', labelX, finalY);
+    doc.text('Rs. ' + (parseFloat(inv.cgst) || 0).toFixed(2), totalX, finalY, { align: 'right' });
+    finalY += 6;
+  }
+  if (inv.sgst > 0) {
+    doc.text('SGST:', labelX, finalY);
+    doc.text('Rs. ' + (parseFloat(inv.sgst) || 0).toFixed(2), totalX, finalY, { align: 'right' });
+    finalY += 6;
+  }
+  if (inv.igst > 0) {
+    doc.text('IGST:', labelX, finalY);
+    doc.text('Rs. ' + (parseFloat(inv.igst) || 0).toFixed(2), totalX, finalY, { align: 'right' });
+    finalY += 6;
+  }
+
+  doc.setDrawColor(30, 58, 138);
+  doc.setLineWidth(0.5);
+  doc.line(labelX, finalY, totalX, finalY);
+  finalY += 6;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(30, 58, 138);
+  doc.text('Grand Total:', labelX, finalY);
+  doc.text('Rs. ' + (parseFloat(inv.total) || 0).toFixed(2), totalX, finalY, { align: 'right' });
+
+  if (inv.notes) {
+    finalY += 12;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(60, 60, 60);
+    doc.text('Notes:', 14, finalY);
+    doc.setFont('helvetica', 'normal');
+    const noteLines = doc.splitTextToSize(inv.notes, pageWidth - 28);
+    doc.text(noteLines, 14, finalY + 5);
+  }
+
+  const footerY = doc.internal.pageSize.getHeight() - 20;
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Thank you for your business!', pageWidth / 2, footerY, { align: 'center' });
+  doc.setFontSize(8);
+  doc.text('This is a computer generated invoice.', pageWidth / 2, footerY + 5, { align: 'center' });
+
+  const fileName = `${inv.invoice_no}_${(party.name || 'Party').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+  if (autoDownload) doc.save(fileName);
+  return { doc, fileName };
+}
+
+// ============ COMMUNICATION PAGE ============
+let currentCommTab = 'broadcast';
+
+function switchCommTab(tab) {
+  currentCommTab = tab;
+  document.querySelectorAll('.comm-tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.comm-content').forEach(c => c.style.display = 'none');
+  document.getElementById(tab + 'Content').style.display = 'block';
+  if (tab === 'scheduled') renderScheduledMessages();
+  if (tab === 'history') renderMessageHistory();
+  if (tab === 'broadcast') updateCommStats();
+}
+
+function updateCommStats() {
+  const parties = DB.get('parties');
+  const scheduled = DB.get('scheduledMessages');
+  document.getElementById('bcTotalParties').textContent = parties.length;
+  document.getElementById('bcWithPhone').textContent = parties.filter(p => p.phone).length;
+  document.getElementById('bcWithEmail').textContent = parties.filter(p => p.email).length;
+  document.getElementById('bcScheduled').textContent = scheduled.filter(s => s.status === 'scheduled').length;
+}
+
+// ============ SMS SYSTEM ============
+let currentSMSPartyId = null;
+
+function openSMSModal(partyId) {
+  const party = DB.get('parties').find(p => p.id === partyId);
+  if (!party) return;
+  if (!party.phone) return toast('This party has no phone number', true);
+  currentSMSPartyId = partyId;
+
+  document.getElementById('sms_partyName').textContent = party.name;
+  document.getElementById('sms_partyPhone').textContent = '📞 +91 ' + party.phone;
+
+  const invoices = DB.get('invoices')
+    .filter(i => i.party_id === partyId && i.type === 'sale')
+    .sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date));
+
+  if (invoices.length) {
+    const latest = invoices[0];
+    const msg = `Dear ${party.name},\n\nInvoice ${latest.invoice_no} dated ${latest.invoice_date} for Rs.${latest.total.toFixed(2)} has been generated.\n\nThank you,\n${company.name || 'Your Company'}`;
+    document.getElementById('sms_message').value = msg;
+  } else {
+    document.getElementById('sms_message').value = `Dear ${party.name},\n\nThank you for your business!\n\n${company.name || 'Your Company'}`;
+  }
+
+  updateSMSCharCount();
+  document.getElementById('sms_status').className = 'sms-status';
+  document.getElementById('sms_status').style.display = 'none';
+  document.getElementById('smsModal').classList.add('active');
+}
+
+function closeSMSModal() {
+  document.getElementById('smsModal').classList.remove('active');
+  currentSMSPartyId = null;
+}
+
+function updateSMSCharCount() {
+  const msg = document.getElementById('sms_message').value;
+  document.getElementById('sms_charCount').textContent = msg.length;
+  const segments = Math.ceil(msg.length / 160) || 1;
+  document.getElementById('sms_segments').textContent = segments;
+}
+
+function applySMSTemplate(type) {
+  const party = DB.get('parties').find(p => p.id === currentSMSPartyId);
+  if (!party) return;
+  const invoices = DB.get('invoices')
+    .filter(i => i.party_id === currentSMSPartyId && i.type === 'sale')
+    .sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date));
+  const companyName = company.name || 'Your Company';
+  let msg = '';
+
+  if (type === 'invoice' && invoices.length) {
+    const latest = invoices[0];
+    msg = `Dear ${party.name},\n\nInvoice ${latest.invoice_no} dated ${latest.invoice_date} for Rs.${latest.total.toFixed(2)} has been generated.\n\nThank you,\n${companyName}`;
+  } else if (type === 'reminder') {
+    const totalDue = invoices.reduce((s, i) => s + i.total, 0);
+    msg = `Dear ${party.name},\n\nThis is a gentle reminder regarding your outstanding balance of Rs.${totalDue.toFixed(2)}.\n\nKindly make the payment at your earliest convenience.\n\nThank you,\n${companyName}`;
+  } else if (type === 'thankyou') {
+    msg = `Dear ${party.name},\n\nThank you for your business! We appreciate your trust in us.\n\nBest regards,\n${companyName}`;
+  } else if (type === 'custom') {
+    msg = '';
+  }
+
+  document.getElementById('sms_message').value = msg;
+  updateSMSCharCount();
+}
+
+function sendViaTextbelt() {
+  const party = DB.get('parties').find(p => p.id === currentSMSPartyId);
+  if (!party) return;
+  const message = document.getElementById('sms_message').value.trim();
+  if (!message) return toast('Please enter a message', true);
+
+  const phone = formatSMSNumber(party.phone);
+  if (!phone) return toast('Invalid phone number', true);
+
+  const statusEl = document.getElementById('sms_status');
+
+  if (!smsSettings.apiKey || smsSettings.apiKey === '') {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ Please configure your Textbelt API key in Settings.';
+    statusEl.style.display = 'block';
+    return;
+  }
+
+  statusEl.className = 'sms-status info';
+  statusEl.textContent = '⏳ Sending SMS via Textbelt...';
+  statusEl.style.display = 'block';
+
+  fetch('https://textbelt.com/text', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ phone, message, key: smsSettings.apiKey })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      statusEl.className = 'sms-status success';
+      statusEl.textContent = `✅ SMS sent successfully! (Quota remaining: ${data.quotaRemaining})`;
+      toast('✅ SMS sent successfully!');
+      logMessage('sms', party, message, 'sent');
+    } else {
+      statusEl.className = 'sms-status error';
+      statusEl.textContent = `❌ Failed: ${data.error || 'Unknown error'}`;
+      toast('SMS failed: ' + (data.error || 'Unknown error'), true);
+      logMessage('sms', party, message, 'failed');
+    }
+  })
+  .catch(err => {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ Network error. Please try again.';
+    toast('SMS sending failed', true);
+  });
+}
+
+function sendViaDeviceSMS() {
+  const party = DB.get('parties').find(p => p.id === currentSMSPartyId);
+  if (!party) return;
+  const message = document.getElementById('sms_message').value.trim();
+  if (!message) return toast('Please enter a message', true);
+  const phone = formatSMSNumber(party.phone);
+  if (!phone) return toast('Invalid phone number', true);
+  window.open(`sms:+${phone}?body=${encodeURIComponent(message)}`, '_blank');
+  toast('📱 SMS app opened');
+  logMessage('sms', party, message, 'sent');
+  closeSMSModal();
+}
+
+function switchToWhatsAppFromSMS() {
+  const party = DB.get('parties').find(p => p.id === currentSMSPartyId);
+  if (!party) return;
+  const message = document.getElementById('sms_message').value.trim();
+  if (!message) return toast('Please enter a message', true);
+  const phone = formatWhatsAppNumber(party.phone);
+  if (!phone) return toast('Invalid phone number', true);
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+  toast('📱 WhatsApp opened');
+  logMessage('whatsapp', party, message, 'sent');
+  closeSMSModal();
+}
+
+function saveSMSSettings() {
+  smsSettings = {
+    provider: document.getElementById('s_sms_provider').value,
+    apiKey: document.getElementById('s_sms_key').value,
+    countryCode: document.getElementById('s_sms_country').value || '91'
+  };
+  DB.setObj('smsSettings', smsSettings);
+  toast('✅ SMS settings saved');
+}
+
+function loadSMSSettings() {
+  document.getElementById('s_sms_provider').value = smsSettings.provider || 'textbelt';
+  document.getElementById('s_sms_key').value = smsSettings.apiKey || 'textbelt';
+  document.getElementById('s_sms_country').value = smsSettings.countryCode || '91';
+}
+
+// ============ EMAIL SYSTEM ============
+let currentEmailPartyId = null;
+
+function openEmailModal(partyId) {
+  const party = DB.get('parties').find(p => p.id === partyId);
+  if (!party) return;
+  if (!party.email) return toast('This party has no email address', true);
+  currentEmailPartyId = partyId;
+
+  document.getElementById('email_partyName').textContent = party.name;
+  document.getElementById('email_partyEmail').textContent = '✉️ ' + party.email;
+  document.getElementById('email_to').value = party.email;
+
+  const invoices = DB.get('invoices')
+    .filter(i => i.party_id === partyId && i.type === 'sale')
+    .sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date));
+
+  if (invoices.length) {
+    const latest = invoices[0];
+    document.getElementById('email_subject').value = `Invoice ${latest.invoice_no} from ${company.name || 'Your Company'}`;
+    document.getElementById('email_message').value = `Dear ${party.name},\n\nPlease find below the details of invoice ${latest.invoice_no} dated ${latest.invoice_date}.\n\nInvoice Amount: Rs.${latest.total.toFixed(2)}\n\nThank you for your business!\n\nBest regards,\n${company.name || 'Your Company'}\n${company.phone || ''}\n${company.email || ''}`;
+  } else {
+    document.getElementById('email_subject').value = `Message from ${company.name || 'Your Company'}`;
+    document.getElementById('email_message').value = `Dear ${party.name},\n\nThank you for your business!\n\nBest regards,\n${company.name || 'Your Company'}`;
+  }
+
+  document.getElementById('email_status').className = 'sms-status';
+  document.getElementById('email_status').style.display = 'none';
+  document.getElementById('emailModal').classList.add('active');
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModal').classList.remove('active');
+  currentEmailPartyId = null;
+}
+
+function applyEmailTemplate(type) {
+  const party = DB.get('parties').find(p => p.id === currentEmailPartyId);
+  if (!party) return;
+  const invoices = DB.get('invoices')
+    .filter(i => i.party_id === currentEmailPartyId && i.type === 'sale')
+    .sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date));
+  const companyName = company.name || 'Your Company';
+  let subject = '', body = '';
+
+  if (type === 'invoice' && invoices.length) {
+    const latest = invoices[0];
+    subject = `Invoice ${latest.invoice_no} from ${companyName}`;
+    body = `Dear ${party.name},\n\nPlease find below the details of invoice ${latest.invoice_no} dated ${latest.invoice_date}.\n\nInvoice Amount: Rs.${latest.total.toFixed(2)}\n\nThank you for your business!\n\nBest regards,\n${companyName}\n${company.phone || ''}\n${company.email || ''}`;
+  } else if (type === 'reminder') {
+    const totalDue = invoices.reduce((s, i) => s + i.total, 0);
+    subject = `Payment Reminder from ${companyName}`;
+    body = `Dear ${party.name},\n\nThis is a gentle reminder regarding your outstanding balance of Rs.${totalDue.toFixed(2)}.\n\nKindly make the payment at your earliest convenience.\n\nThank you,\n${companyName}`;
+  } else if (type === 'thankyou') {
+    subject = `Thank You from ${companyName}`;
+    body = `Dear ${party.name},\n\nThank you for your business! We appreciate your trust in us.\n\nBest regards,\n${companyName}`;
+  } else if (type === 'custom') {
+    subject = '';
+    body = '';
+  }
+
+  document.getElementById('email_subject').value = subject;
+  document.getElementById('email_message').value = body;
+}
+
+function sendViaMailto() {
+  const to = document.getElementById('email_to').value.trim();
+  const subject = document.getElementById('email_subject').value.trim();
+  const message = document.getElementById('email_message').value.trim();
+  if (!to) return toast('Please enter recipient email', true);
+  if (!subject) return toast('Please enter subject', true);
+  if (!message) return toast('Please enter message', true);
+
+  window.open(`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`, '_blank');
+  toast('📧 Email client opened');
+
+  const party = DB.get('parties').find(p => p.id === currentEmailPartyId);
+  if (party) logMessage('email', party, subject + '\n\n' + message, 'sent');
+  closeEmailModal();
+}
+
+function sendViaEmailJS() {
+  const to = document.getElementById('email_to').value.trim();
+  const subject = document.getElementById('email_subject').value.trim();
+  const message = document.getElementById('email_message').value.trim();
+  if (!to) return toast('Please enter recipient email', true);
+  if (!subject) return toast('Please enter subject', true);
+  if (!message) return toast('Please enter message', true);
+
+  const statusEl = document.getElementById('email_status');
+
+  if (!emailSettings.serviceId || !emailSettings.templateId || !emailSettings.publicKey) {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ Please configure EmailJS settings first in Settings page.';
+    statusEl.style.display = 'block';
+    return;
+  }
+
+  statusEl.className = 'sms-status info';
+  statusEl.textContent = '⏳ Sending email via EmailJS...';
+  statusEl.style.display = 'block';
+
+  if (typeof emailjs === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+    script.onload = () => {
+      emailjs.init(emailSettings.publicKey);
+      sendEmailJSActual(to, subject, message, statusEl);
+    };
+    script.onerror = () => {
+      statusEl.className = 'sms-status error';
+      statusEl.textContent = '❌ Failed to load EmailJS library.';
+    };
+    document.head.appendChild(script);
+  } else {
+    sendEmailJSActual(to, subject, message, statusEl);
+  }
+}
+
+function sendEmailJSActual(to, subject, message, statusEl) {
+  const templateParams = {
+    to_email: to, subject, message,
+    from_name: company.name || 'GST Accounting',
+    reply_to: company.email || ''
+  };
+
+  emailjs.send(emailSettings.serviceId, emailSettings.templateId, templateParams)
+    .then(() => {
+      statusEl.className = 'sms-status success';
+      statusEl.textContent = '✅ Email sent successfully!';
+      toast('✅ Email sent successfully!');
+      const party = DB.get('parties').find(p => p.id === currentEmailPartyId);
+      if (party) logMessage('email', party, subject + '\n\n' + message, 'sent');
+      setTimeout(() => closeEmailModal(), 1500);
+    })
+    .catch(err => {
+      statusEl.className = 'sms-status error';
+      statusEl.textContent = '❌ Failed: ' + (err.text || err.message || 'Unknown error');
+      toast('Email sending failed', true);
+    });
+}
+
+function saveEmailSettings() {
+  emailSettings = {
+    provider: document.getElementById('s_email_provider').value,
+    serviceId: document.getElementById('s_emailjs_service').value.trim(),
+    templateId: document.getElementById('s_emailjs_template').value.trim(),
+    publicKey: document.getElementById('s_emailjs_public').value.trim()
+  };
+  DB.setObj('emailSettings', emailSettings);
+  toast('✅ Email settings saved');
+}
+
+function loadEmailSettings() {
+  document.getElementById('s_email_provider').value = emailSettings.provider || 'mailto';
+  document.getElementById('s_emailjs_service').value = emailSettings.serviceId || '';
+  document.getElementById('s_emailjs_template').value = emailSettings.templateId || '';
+  document.getElementById('s_emailjs_public').value = emailSettings.publicKey || '';
+}
+
+// ============ BROADCAST SYSTEM ============
+let broadcastSelection = new Set();
+
+function openBroadcastModal() {
+  const parties = DB.get('parties');
+  if (parties.length === 0) return toast('Please add some parties first', true);
+  broadcastSelection = new Set();
+  renderBroadcastRecipients();
+  document.getElementById('bc_subject').value = '';
+  document.getElementById('bc_message').value = '';
+  document.getElementById('bc_progress').classList.remove('active');
+  document.getElementById('broadcastModal').classList.add('active');
+}
+
+function closeBroadcastModal() {
+  document.getElementById('broadcastModal').classList.remove('active');
+}
+
+function renderBroadcastRecipients() {
+  const parties = DB.get('parties');
+  const container = document.getElementById('bc_recipients');
+  container.innerHTML = parties.map(p => `
+    <label class="bc-recipient">
+      <input type="checkbox" value="${p.id}" ${broadcastSelection.has(p.id) ? 'checked' : ''} onchange="toggleBroadcastRecipient(${p.id}, this.checked)">
+      <div class="bc-recipient-info">
+        <b>${esc(p.name)}</b>
+        <small>${p.phone ? '📞 ' + p.phone : ''} ${p.email ? '✉️ ' + p.email : ''} ${p.type === 'customer' ? '👤 Customer' : '🏢 Supplier'}</small>
+      </div>
+    </label>
+  `).join('');
+  document.getElementById('bc_selectedCount').textContent = broadcastSelection.size;
+}
+
+function toggleBroadcastRecipient(id, checked) {
+  if (checked) broadcastSelection.add(id);
+  else broadcastSelection.delete(id);
+  document.getElementById('bc_selectedCount').textContent = broadcastSelection.size;
+}
+
+function bcSelectAll(select) {
+  const parties = DB.get('parties');
+  broadcastSelection.clear();
+  if (select) parties.forEach(p => broadcastSelection.add(p.id));
+  renderBroadcastRecipients();
+}
+
+function bcSelectCustomers() {
+  const parties = DB.get('parties').filter(p => p.type === 'customer');
+  broadcastSelection.clear();
+  parties.forEach(p => broadcastSelection.add(p.id));
+  renderBroadcastRecipients();
+}
+
+function bcSelectWithPhone() {
+  const parties = DB.get('parties').filter(p => p.phone);
+  broadcastSelection.clear();
+  parties.forEach(p => broadcastSelection.add(p.id));
+  renderBroadcastRecipients();
+}
+
+function bcSelectWithEmail() {
+  const parties = DB.get('parties').filter(p => p.email);
+  broadcastSelection.clear();
+  parties.forEach(p => broadcastSelection.add(p.id));
+  renderBroadcastRecipients();
+}
+
+function sendBroadcast() {
+  const channel = document.querySelector('input[name="bc_channel"]:checked').value;
+  const subject = document.getElementById('bc_subject').value.trim();
+  const messageTemplate = document.getElementById('bc_message').value.trim();
+
+  if (broadcastSelection.size === 0) return toast('Please select at least one recipient', true);
+  if (!messageTemplate) return toast('Please enter a message', true);
+
+  const parties = DB.get('parties').filter(p => broadcastSelection.has(p.id));
+  const filtered = parties.filter(p => {
+    if (channel === 'sms' || channel === 'whatsapp') return p.phone;
+    if (channel === 'email') return p.email;
+    return false;
+  });
+
+  if (filtered.length === 0) {
+    return toast(`No selected parties have ${channel === 'email' ? 'email' : 'phone number'}`, true);
+  }
+
+  const progressEl = document.getElementById('bc_progress');
+  progressEl.classList.add('active');
+
+  let sent = 0;
+  const total = filtered.length;
+
+  const sendNext = () => {
+    if (sent >= total) {
+      document.getElementById('bc_progressText').textContent = 'Broadcast complete!';
+      document.getElementById('bc_progressCount').textContent = `${total} / ${total}`;
+      toast(`✅ Broadcast sent to ${total} recipients`);
+      updateCommStats();
+      setTimeout(() => {
+        progressEl.classList.remove('active');
+        closeBroadcastModal();
+      }, 1500);
+      return;
+    }
+
+    const party = filtered[sent];
+    const msg = messageTemplate
+      .replace(/{name}/g, party.name)
+      .replace(/{company}/g, company.name || 'Our Company');
+
+    if (channel === 'whatsapp') {
+      window.open(`https://wa.me/${formatWhatsAppNumber(party.phone)}?text=${encodeURIComponent(msg)}`, '_blank');
+      logMessage('whatsapp', party, msg, 'sent');
+    } else if (channel === 'sms') {
+      window.open(`sms:+${formatSMSNumber(party.phone)}?body=${encodeURIComponent(msg)}`, '_blank');
+      logMessage('sms', party, msg, 'sent');
+    } else if (channel === 'email') {
+      window.open(`mailto:${encodeURIComponent(party.email)}?subject=${encodeURIComponent(subject || 'Message from ' + (company.name || 'Our Company'))}&body=${encodeURIComponent(msg)}`, '_blank');
+      logMessage('email', party, (subject || 'Message') + '\n\n' + msg, 'sent');
+    }
+
+    sent++;
+    const pct = (sent / total) * 100;
+    document.getElementById('bc_progressFill').style.width = pct + '%';
+    document.getElementById('bc_progressCount').textContent = `${sent} / ${total}`;
+    document.getElementById('bc_progressText').textContent = `Sending to ${party.name}...`;
+
+    setTimeout(sendNext, 800);
+  };
+
+  sendNext();
+}
+
+// ============ MESSAGE LOGGING ============
+function logMessage(channel, party, message, status) {
+  const history = DB.get('messageHistory');
+  history.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    channel,
+    partyId: party.id,
+    partyName: party.name,
+    recipient: channel === 'email' ? party.email : party.phone,
+    message, status,
+    sentAt: new Date().toISOString()
+  });
+  DB.set('messageHistory', history);
+}
+
+function renderMessageHistory() {
+  const history = DB.get('messageHistory').slice().reverse();
+  const container = document.getElementById('messageHistory');
+
+  if (history.length === 0) {
+    container.innerHTML = '<div class="empty">📜 No messages sent yet</div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="scheduled-list">
+      <div class="scheduled-toolbar">
+        <b>📜 Message History (${history.length})</b>
+        <button class="small secondary" onclick="clearMessageHistory()">🗑️ Clear History</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Date</th><th>Channel</th><th>Party</th><th>Recipient</th><th>Message</th><th>Status</th>
+        </tr></thead>
+        <tbody>${history.map(h => `
+          <tr>
+            <td>${new Date(h.sentAt).toLocaleString()}</td>
+            <td>${h.channel === 'sms' ? '💬 SMS' : h.channel === 'email' ? '📧 Email' : '📱 WhatsApp'}</td>
+            <td>${esc(h.partyName)}</td>
+            <td>${esc(h.recipient || '-')}</td>
+            <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escAttr(h.message)}">${esc(h.message.substring(0, 60))}${h.message.length > 60 ? '...' : ''}</td>
+            <td><span class="badge ${h.status === 'sent' ? 'sent' : 'failed'}">${h.status === 'sent' ? '✅ Sent' : '❌ Failed'}</span></td>
+          </tr>
+        `).join('')}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function clearMessageHistory() {
+  if (!confirm('Clear all message history?')) return;
+  DB.set('messageHistory', []);
+  renderMessageHistory();
+  updateCommStats();
+  toast('🗑️ History cleared');
+}
+
+// ============ SCHEDULE SYSTEM ============
+let scheduleData = null;
+
+function openScheduleModal(type) {
+  let data = null;
+
+  if (type === 'sms') {
+    const party = DB.get('parties').find(p => p.id === currentSMSPartyId);
+    if (!party) return toast('No party selected', true);
+    const message = document.getElementById('sms_message').value.trim();
+    if (!message) return toast('Please enter a message first', true);
+    data = { type: 'sms', partyId: party.id, partyName: party.name, recipient: party.phone, message };
+  } else if (type === 'email') {
+    const to = document.getElementById('email_to').value.trim();
+    const subject = document.getElementById('email_subject').value.trim();
+    const message = document.getElementById('email_message').value.trim();
+    if (!to || !subject || !message) return toast('Please fill all email fields first', true);
+    const party = DB.get('parties').find(p => p.id === currentEmailPartyId);
+    data = { type: 'email', partyId: party?.id, partyName: party?.name || to, recipient: to, subject, message };
+  } else if (type === 'broadcast') {
+    const channel = document.querySelector('input[name="bc_channel"]:checked').value;
+    const subject = document.getElementById('bc_subject').value.trim();
+    const message = document.getElementById('bc_message').value.trim();
+    if (broadcastSelection.size === 0) return toast('Please select recipients first', true);
+    if (!message) return toast('Please enter a message first', true);
+    data = {
+      type: 'broadcast', channel, subject, message,
+      recipients: [...broadcastSelection],
+      recipientNames: DB.get('parties').filter(p => broadcastSelection.has(p.id)).map(p => p.name)
+    };
+  }
+
+  if (!data) return;
+  scheduleData = data;
+  document.getElementById('sch_type').value = type;
+  document.getElementById('sch_data').value = JSON.stringify(data);
+  document.getElementById('sch_messageType').textContent = `Schedule ${type.toUpperCase()} message`;
+  document.getElementById('sch_preview').innerHTML = `
+    <b>To:</b> ${esc(data.partyName || data.recipientNames?.join(', ') || 'Multiple')}<br>
+    <b>Message:</b> ${esc((data.message || '').substring(0, 120))}${(data.message || '').length > 120 ? '...' : ''}
+  `;
+
+  const now = new Date(Date.now() + 60 * 60 * 1000);
+  document.getElementById('sch_date').value = now.toISOString().slice(0, 10);
+  document.getElementById('sch_time').value = now.toTimeString().slice(0, 5);
+
+  document.getElementById('scheduleModal').classList.add('active');
+}
+
+function closeScheduleModal() {
+  document.getElementById('scheduleModal').classList.remove('active');
+  scheduleData = null;
+}
+
+function quickSchedule(minutes) {
+  const target = new Date(Date.now() + minutes * 60 * 1000);
+  document.getElementById('sch_date').value = target.toISOString().slice(0, 10);
+  document.getElementById('sch_time').value = target.toTimeString().slice(0, 5);
+}
+
+function confirmSchedule() {
+  const date = document.getElementById('sch_date').value;
+  const time = document.getElementById('sch_time').value;
+  if (!date || !time) return toast('Please select date and time', true);
+
+  const scheduledAt = new Date(`${date}T${time}`).toISOString();
+  if (new Date(scheduledAt) <= new Date()) {
+    return toast('Please select a future date/time', true);
+  }
+
+  const scheduled = DB.get('scheduledMessages');
+  scheduled.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    ...scheduleData, scheduledAt,
+    status: 'scheduled',
+    createdAt: new Date().toISOString()
+  });
+  DB.set('scheduledMessages', scheduled);
+
+  closeScheduleModal();
+  toast('⏰ Message scheduled successfully!');
+  updateCommStats();
+
+  closeSMSModal();
+  closeEmailModal();
+  closeBroadcastModal();
+}
+
+function renderScheduledMessages() {
+  const scheduled = DB.get('scheduledMessages').slice().reverse();
+  const container = document.getElementById('scheduledList');
+
+  if (scheduled.length === 0) {
+    container.innerHTML = '<div class="empty">⏰ No scheduled messages</div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="scheduled-list">
+      <div class="scheduled-toolbar">
+        <b>⏰ Scheduled Messages (${scheduled.length})</b>
+        <button class="small secondary" onclick="clearScheduled()">🗑️ Clear All</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Scheduled For</th><th>Type</th><th>Recipient(s)</th><th>Message</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${scheduled.map(s => `
+          <tr>
+            <td><b>${new Date(s.scheduledAt).toLocaleString()}</b></td>
+            <td>${s.type === 'sms' ? '💬 SMS' : s.type === 'email' ? '📧 Email' : '📢 Broadcast'}</td>
+            <td>${esc(s.partyName || (s.recipientNames ? s.recipientNames.length + ' recipients' : s.recipient))}</td>
+            <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escAttr(s.message)}">${esc(s.message.substring(0, 60))}${s.message.length > 60 ? '...' : ''}</td>
+            <td><span class="badge ${s.status === 'scheduled' ? 'scheduled' : s.status === 'sent' ? 'sent' : 'failed'}">${s.status === 'scheduled' ? '⏳ Scheduled' : s.status === 'sent' ? '✅ Sent' : '❌ Failed'}</span></td>
+            <td>
+              ${s.status === 'scheduled' ? `<button class="small success" onclick="sendNowScheduled('${s.id}')">📤 Send Now</button>` : ''}
+              <button class="small danger" onclick="deleteScheduled('${s.id}')">🗑️ Delete</button>
+            </td>
+          </tr>
+        `).join('')}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function sendNowScheduled(id) {
+  const scheduled = DB.get('scheduledMessages');
+  const idx = scheduled.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  executeScheduled(scheduled[idx], idx);
+}
+
+function deleteScheduled(id) {
+  if (!confirm('Delete this scheduled message?')) return;
+  DB.set('scheduledMessages', DB.get('scheduledMessages').filter(s => s.id !== id));
+  renderScheduledMessages();
+  updateCommStats();
+  toast('🗑️ Deleted');
+}
+
+function clearScheduled() {
+  if (!confirm('Clear all scheduled messages?')) return;
+  DB.set('scheduledMessages', []);
+  renderScheduledMessages();
+  updateCommStats();
+  toast('🗑️ Cleared');
+}
+
+function executeScheduled(item, idx) {
+  const scheduled = DB.get('scheduledMessages');
+
+  if (item.type === 'sms') {
+    window.open(`sms:+${formatSMSNumber(item.recipient)}?body=${encodeURIComponent(item.message)}`, '_blank');
+    logMessage('sms', { id: item.partyId, name: item.partyName, phone: item.recipient }, item.message, 'sent');
+  } else if (item.type === 'email') {
+    window.open(`mailto:${encodeURIComponent(item.recipient)}?subject=${encodeURIComponent(item.subject || '')}&body=${encodeURIComponent(item.message)}`, '_blank');
+    logMessage('email', { id: item.partyId, name: item.partyName, email: item.recipient }, (item.subject || '') + '\n\n' + item.message, 'sent');
+  } else if (item.type === 'broadcast') {
+    const parties = DB.get('parties').filter(p => item.recipients.includes(p.id));
+    parties.forEach((party, i) => {
+      setTimeout(() => {
+        const msg = item.message.replace(/{name}/g, party.name).replace(/{company}/g, company.name || 'Our Company');
+        if (item.channel === 'whatsapp' && party.phone) {
+          window.open(`https://wa.me/${formatWhatsAppNumber(party.phone)}?text=${encodeURIComponent(msg)}`, '_blank');
+          logMessage('whatsapp', party, msg, 'sent');
+        } else if (item.channel === 'sms' && party.phone) {
+          window.open(`sms:+${formatSMSNumber(party.phone)}?body=${encodeURIComponent(msg)}`, '_blank');
+          logMessage('sms', party, msg, 'sent');
+        } else if (item.channel === 'email' && party.email) {
+          window.open(`mailto:${encodeURIComponent(party.email)}?subject=${encodeURIComponent(item.subject || '')}&body=${encodeURIComponent(msg)}`, '_blank');
+          logMessage('email', party, (item.subject || '') + '\n\n' + msg, 'sent');
+        }
+      }, i * 800);
+    });
+  }
+
+  if (idx >= 0) {
+    scheduled[idx].status = 'sent';
+    scheduled[idx].sentAt = new Date().toISOString();
+    DB.set('scheduledMessages', scheduled);
+  }
+  renderScheduledMessages();
+  updateCommStats();
+  toast('✅ Scheduled message sent');
+}
+
+function startScheduleChecker() {
+  setInterval(() => {
+    if (!CURRENT_USER) return;
+    const scheduled = DB.get('scheduledMessages');
+    const now = new Date();
+    let changed = false;
+
+    scheduled.forEach((item, idx) => {
+      if (item.status === 'scheduled' && new Date(item.scheduledAt) <= now) {
+        executeScheduled(item, idx);
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      renderScheduledMessages();
+      updateCommStats();
+    }
+  }, 30000);
+}
+
+// ============ NAVIGATION ============
+document.querySelectorAll('nav a').forEach(a => {
+  a.onclick = () => {
+    document.querySelectorAll('nav a').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    document.getElementById(a.dataset.page).classList.add('active');
+    if (a.dataset.page === 'dashboard') renderDashboard();
+    if (a.dataset.page === 'parties') renderParties();
+    if (a.dataset.page === 'items') renderItems();
+    if (a.dataset.page === 'invoices') renderInvoices();
+    if (a.dataset.page === 'payments') renderPayments();
+    if (a.dataset.page === 'newInvoice') prepareInvoiceForm();
+    if (a.dataset.page === 'settings') loadSettings();
+    if (a.dataset.page === 'gstFiling') initFilingPage();
+    if (a.dataset.page === 'communication') {
+      updateCommStats();
+      if (currentCommTab === 'scheduled') renderScheduledMessages();
+      if (currentCommTab === 'history') renderMessageHistory();
+    }
+  };
+});
+
+// ============ DASHBOARD ============
+function renderDashboard() {
+  const invoices = DB.get('invoices');
+  const parties = DB.get('parties');
+  const items = DB.get('items');
+  const sales = invoices.filter(i => i.type === 'sale').reduce((s, i) => s + i.total, 0);
+  const purchase = invoices.filter(i => i.type === 'purchase').reduce((s, i) => s + i.total, 0);
+  const payments = DB.get('payments');
+  const receivables = invoices.filter(i => i.type === 'sale').reduce((sum, i) => {
+    const paid = payments.filter(p => p.invoice_id === i.id && p.type === 'in').reduce((s, p) => s + p.amount, 0);
+    return sum + (i.total - paid);
+  }, 0);
+  const payables = invoices.filter(i => i.type === 'purchase').reduce((sum, i) => {
+    const paid = payments.filter(p => p.invoice_id === i.id && p.type === 'out').reduce((s, p) => s + p.amount, 0);
+    return sum + (i.total - paid);
+  }, 0);
+  const scheduled = DB.get('scheduledMessages').filter(s => s.status === 'scheduled').length;
+  document.getElementById('dashCards').innerHTML = `
+    <div class="card green"><span>Total Sales</span><b>${fmt(sales)}</b></div>
+    <div class="card orange"><span>Total Purchase</span><b>${fmt(purchase)}</b></div>
+    <div class="card"><span>Receivables</span><b>${fmt(receivables)}</b></div>
+    <div class="card red"><span>Payables</span><b>${fmt(payables)}</b></div>
+    <div class="card purple"><span>Total Parties</span><b>${parties.length}</b></div>
+    <div class="card purple"><span>Total Items</span><b>${items.length}</b></div>
+    <div class="card cyan"><span>Scheduled Msgs</span><b>${scheduled}</b></div>
+  `;
+  const recent = invoices.slice(-5).reverse();
+  document.getElementById('recentInvoices').innerHTML = recent.length ? `
+    <table>
+      <thead><tr><th>Invoice</th><th>Date</th><th>Party</th><th>Type</th><th>Total</th></tr></thead>
+      <tbody>${recent.map(i => {
+        const p = parties.find(x => x.id === i.party_id);
+        return `<tr>
+          <td>${esc(i.invoice_no)}</td><td>${i.invoice_date}</td>
+          <td>${esc(p?.name || '-')}</td><td>${i.type}</td>
+          <td><b>${fmt(i.total)}</b></td></tr>`;
+      }).join('')}</tbody>
+    </table>` : '<div class="empty">No invoices yet</div>';
+}
+
+// ============ PARTIES ============
+document.getElementById('partyForm').onsubmit = e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  data.id = DB.nextId('parties');
+  data.opening_balance = parseFloat(data.opening_balance) || 0;
+  const list = DB.get('parties');
+  list.push(data);
+  DB.set('parties', list);
+  e.target.reset();
+  toast('✅ Party added');
+  renderParties();
+  updateCommStats();
+};
+
+let currentPartySearch = '';
+
+document.getElementById('partySearch')?.addEventListener('input', e => {
+  currentPartySearch = e.target.value.toLowerCase();
+  renderParties();
+});
+
+function renderParties() {
+  const list = DB.get('parties');
+  const search = currentPartySearch;
+  const filtered = search ? list.filter(p =>
+    (p.name || '').toLowerCase().includes(search) ||
+    (p.gstin || '').toLowerCase().includes(search) ||
+    (p.phone || '').toLowerCase().includes(search) ||
+    (p.email || '').toLowerCase().includes(search)
+  ) : list;
+
+  document.getElementById('partiesList').innerHTML = `
+    <div class="items-toolbar">
+      <div><b>${filtered.length}</b> parties ${search ? '(filtered)' : ''}</div>
+    </div>
+    ${filtered.length ? `
+    <table>
+      <thead><tr><th>Name</th><th>GSTIN</th><th>Phone</th><th>Email</th><th>State</th><th>Type</th><th style="min-width:240px">Actions</th></tr></thead>
+      <tbody>${filtered.map(p => `<tr>
+        <td><b>${esc(p.name)}</b></td>
+        <td>${esc(p.gstin) || '<span style="color:#cbd5e1">—</span>'}</td>
+        <td>${esc(p.phone) || '<span style="color:#cbd5e1">—</span>'}</td>
+        <td>${esc(p.email) || '<span style="color:#cbd5e1">—</span>'}</td>
+        <td>${esc(p.state) || '<span style="color:#cbd5e1">—</span>'}</td>
+        <td><span class="badge ${p.type === 'customer' ? 'customer' : 'supplier'}">${p.type === 'customer' ? '👤 Customer' : '🏢 Supplier'}</span></td>
+        <td>
+          <button class="edit-btn" onclick="openPartyEditModal(${p.id})">✏️ Edit</button>
+          ${p.phone ? `
+            <button class="whatsapp" onclick="openWhatsAppModal(${p.id})">📱 WA</button>
+            <button class="sms-btn" onclick="openSMSModal(${p.id})">💬 SMS</button>
+          ` : ''}
+          ${p.email ? `<button class="email-btn" onclick="openEmailModal(${p.id})">📧 Email</button>` : ''}
+          <button class="remove-btn" onclick="confirmDeleteParty(${p.id}, '${escAttr(p.name)}')">🗑️</button>
+        </td>
+      </tr>`).join('')}</tbody>
+    </table>` : `<div class="empty">${search ? '🔍 No parties match your search' : '👥 No parties added yet'}</div>`}
+  `;
+}
+
+// ============ PARTY EDIT ============
+function openPartyEditModal(partyId) {
+  const party = DB.get('parties').find(p => p.id === partyId);
+  if (!party) return toast('Party not found', true);
+
+  document.getElementById('pe_id').value = party.id;
+  document.getElementById('pe_subtitle').textContent = `Editing: ${party.name}`;
+
+  document.getElementById('pe_name').value = party.name || '';
+  document.getElementById('pe_gstin').value = party.gstin || '';
+  document.getElementById('pe_phone').value = party.phone || '';
+  document.getElementById('pe_email').value = party.email || '';
+  document.getElementById('pe_state').value = party.state || '';
+  document.getElementById('pe_address').value = party.address || '';
+  document.getElementById('pe_opening_balance').value = party.opening_balance || 0;
+
+  if (party.type === 'supplier') {
+    document.getElementById('pe_type_supplier').checked = true;
+  } else {
+    document.getElementById('pe_type_customer').checked = true;
+  }
+
+  const invoices = DB.get('invoices').filter(i => i.party_id === partyId);
+  const salesInvoices = invoices.filter(i => i.type === 'sale');
+  const purchaseInvoices = invoices.filter(i => i.type === 'purchase');
+  const totalSales = salesInvoices.reduce((s, i) => s + i.total, 0);
+  const totalPurchase = purchaseInvoices.reduce((s, i) => s + i.total, 0);
+
+  document.getElementById('pe_stats').innerHTML = `
+    <div class="pe-stat"><span>Total Invoices</span><b>${invoices.length}</b></div>
+    <div class="pe-stat"><span>Sales</span><b>${salesInvoices.length}</b></div>
+    <div class="pe-stat"><span>Sales Value</span><b>${fmt(totalSales)}</b></div>
+    <div class="pe-stat"><span>Purchase</span><b>${purchaseInvoices.length}</b></div>
+    <div class="pe-stat"><span>Purchase Value</span><b>${fmt(totalPurchase)}</b></div>
+  `;
+
+  document.getElementById('partyEditModal').classList.add('active');
+}
+
+function closePartyEditModal() {
+  document.getElementById('partyEditModal').classList.remove('active');
+}
+
+function savePartyEdit() {
+  const id = parseInt(document.getElementById('pe_id').value);
+  const list = DB.get('parties');
+  const idx = list.findIndex(p => p.id === id);
+  if (idx === -1) return toast('Party not found', true);
+
+  const name = document.getElementById('pe_name').value.trim();
+  if (!name || name.length < 2) {
+    return toast('Please enter a valid party name', true);
+  }
+
+  const gstin = document.getElementById('pe_gstin').value.trim();
+  if (gstin && gstin.length !== 15) {
+    return toast('GSTIN must be 15 characters', true);
+  }
+
+  const phone = document.getElementById('pe_phone').value.trim();
+  if (phone && !/^\d{10}$/.test(phone)) {
+    return toast('Phone must be 10 digits', true);
+  }
+
+  const email = document.getElementById('pe_email').value.trim();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return toast('Please enter a valid email', true);
+  }
+
+  const type = document.querySelector('input[name="pe_type"]:checked')?.value || 'customer';
+  const opening_balance = parseFloat(document.getElementById('pe_opening_balance').value) || 0;
+
+  list[idx] = {
+    ...list[idx],
+    name, gstin, phone, email,
+    state: document.getElementById('pe_state').value.trim(),
+    address: document.getElementById('pe_address').value.trim(),
+    type, opening_balance,
+    updatedAt: new Date().toISOString()
+  };
+
+  DB.set('parties', list);
+  closePartyEditModal();
+  renderParties();
+  updateCommStats();
+  toast('✅ Party details updated successfully!');
+}
+
+// ============ PARTY DELETE ============
+function confirmDeleteParty(id, name) {
+  document.getElementById('deletePartyName').textContent = name;
+  document.getElementById('deletePartyId').value = id;
+  document.getElementById('deletePartyModal').classList.add('active');
+}
+
+function closeDeletePartyModal() {
+  document.getElementById('deletePartyModal').classList.remove('active');
+}
+
+function actuallyDeleteParty() {
+  const id = parseInt(document.getElementById('deletePartyId').value);
+  DB.set('parties', DB.get('parties').filter(p => p.id !== id));
+  closeDeletePartyModal();
+  renderParties();
+  updateCommStats();
+  toast('🗑️ Party deleted');
+}
+
+// ============ WHATSAPP ============
+let currentWaPartyId = null;
+
+function openWhatsAppModal(partyId) {
+  const party = DB.get('parties').find(p => p.id === partyId);
+  if (!party) return;
+  if (!party.phone) return toast('This party has no phone number', true);
+  currentWaPartyId = partyId;
+
+  document.getElementById('wa_partyName').textContent = party.name;
+  document.getElementById('wa_partyPhone').textContent = '📞 +91 ' + party.phone;
+
+  const invoices = DB.get('invoices')
+    .filter(i => i.party_id === partyId && i.type === 'sale')
+    .sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date));
+
+  const container = document.getElementById('wa_content');
+
+  if (!invoices.length) {
+    container.innerHTML = `
+      <div class="empty" style="padding: 20px;">📋 Is party ki koi invoice nahi hai</div>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="whatsapp" onclick="sendSimpleMessage()">📱 Send Simple Message</button>
+      </div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; text-transform: uppercase;">📋 Invoices List (${invoices.length})</div>
+      ${invoices.map(inv => `
+        <div class="wa-invoice-item">
+          <div class="wa-inv-info">
+            <b>${esc(inv.invoice_no)}</b>
+            <small>${inv.invoice_date} • ${inv.items.length} item(s) • ${fmt(inv.total)}</small>
+          </div>
+          <div class="wa-inv-btns">
+            <button class="pdf-btn" onclick="downloadInvoicePDF(${inv.id})">📄 PDF</button>
+            <button class="whatsapp" onclick="sendInvoiceOnWhatsApp(${inv.id})">📱 Send with PDF</button>
+          </div>
+        </div>
+      `).join('')}
+      <div style="margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button class="whatsapp" onclick="sendSummaryOnWhatsApp()">📊 Send Summary + PDF</button>
+        <button class="whatsapp" onclick="sendSimpleMessage()">💬 Simple Message</button>
+      </div>
+    `;
+  }
+
+  document.getElementById('whatsappModal').classList.add('active');
+}
+
+function closeWhatsAppModal() {
+  document.getElementById('whatsappModal').classList.remove('active');
+  currentWaPartyId = null;
+}
+
+function buildInvoiceMessage(inv, party) {
+  const companyName = company.name || 'Our Company';
+  let msg = `*${companyName}*\n`;
+  if (company.gstin) msg += `GSTIN: ${company.gstin}\n`;
+  if (company.phone) msg += `📞 ${company.phone}\n`;
+  msg += `\n*TAX INVOICE*\n`;
+  msg += `━━━━━━━━━━━━━━━\n`;
+  msg += `Invoice No: *${inv.invoice_no}*\n`;
+  msg += `Date: ${inv.invoice_date}\n`;
+  msg += `To: ${party.name}\n`;
+  msg += `━━━━━━━━━━━━━━━\n`;
+  msg += `*Items:*\n`;
+  inv.items.forEach((it, idx) => {
+    msg += `${idx + 1}. ${it.name}\n`;
+    msg += `   ${it.qty} × ${fmt(it.rate)} = ${fmt(it.amount)}\n`;
+  });
+  msg += `━━━━━━━━━━━━━━━\n`;
+  msg += `Subtotal: ${fmt(inv.subtotal)}\n`;
+  if (inv.cgst > 0) msg += `CGST: ${fmt(inv.cgst)}\n`;
+  if (inv.sgst > 0) msg += `SGST: ${fmt(inv.sgst)}\n`;
+  if (inv.igst > 0) msg += `IGST: ${fmt(inv.igst)}\n`;
+  msg += `*Total: ${fmt(inv.total)}*\n`;
+  msg += `━━━━━━━━━━━━━━━\n`;
+  if (inv.notes) msg += `📝 ${inv.notes}\n\n`;
+  msg += `Thank you for your business! 🙏`;
+  return msg;
+}
+
+function buildSummaryMessage(party, invoices) {
+  const companyName = company.name || 'Our Company';
+  const total = invoices.reduce((s, i) => s + i.total, 0);
+  let msg = `*${companyName}*\n`;
+  if (company.gstin) msg += `GSTIN: ${company.gstin}\n`;
+  msg += `\n*Invoice Summary*\n`;
+  msg += `To: ${party.name}\n`;
+  msg += `━━━━━━━━━━━━━━━\n`;
+  invoices.forEach((inv, idx) => {
+    msg += `${idx + 1}. ${inv.invoice_no} (${inv.invoice_date})\n`;
+    msg += `   Amount: ${fmt(inv.total)}\n`;
+  });
+  msg += `━━━━━━━━━━━━━━━\n`;
+  msg += `*Total Invoices: ${invoices.length}*\n`;
+  msg += `*Total Amount: ${fmt(total)}*\n`;
+  msg += `━━━━━━━━━━━━━━━\n`;
+  msg += `Thank you for your business! 🙏`;
+  return msg;
+}
+
+function downloadInvoicePDF(invoiceId) {
+  const inv = DB.get('invoices').find(i => i.id === invoiceId);
+  if (!inv) return;
+  const party = DB.get('parties').find(p => p.id === inv.party_id) || {};
+  generateInvoicePDF(inv, party, true);
+  toast('📄 PDF downloaded: ' + inv.invoice_no);
+}
+
+function sendInvoiceOnWhatsApp(invoiceId) {
+  const party = DB.get('parties').find(p => p.id === currentWaPartyId);
+  const inv = DB.get('invoices').find(i => i.id === invoiceId);
+  if (!party || !inv) return;
+  const phone = formatWhatsAppNumber(party.phone);
+  if (!phone) return toast('Invalid phone number', true);
+
+  try { generateInvoicePDF(inv, party, true); } catch (e) { console.error(e); }
+
+  const msg = buildInvoiceMessage(inv, party);
+  const finalMsg = msg + `\n\n📎 _Invoice PDF bhi attach kar raha hoon. Please check._`;
+
+  setTimeout(() => {
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(finalMsg)}`, '_blank');
+    toast('📄 PDF downloaded + 📱 WhatsApp opened');
+    logMessage('whatsapp', party, finalMsg, 'sent');
+    closeWhatsAppModal();
+  }, 900);
+}
+
+function sendSummaryOnWhatsApp() {
+  const party = DB.get('parties').find(p => p.id === currentWaPartyId);
+  if (!party) return;
+  const invoices = DB.get('invoices')
+    .filter(i => i.party_id === currentWaPartyId && i.type === 'sale')
+    .sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date));
+  if (!invoices.length) return toast('No invoices to send', true);
+  const phone = formatWhatsAppNumber(party.phone);
+  if (!phone) return toast('Invalid phone number', true);
+
+  try { generateSummaryPDF(party, invoices); } catch (e) { console.error(e); }
+
+  const msg = buildSummaryMessage(party, invoices);
+  const finalMsg = msg + `\n\n📎 _Summary PDF bhi attach kar raha hoon._`;
+
+  setTimeout(() => {
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(finalMsg)}`, '_blank');
+    toast('📄 Summary PDF downloaded + 📱 WhatsApp opened');
+    logMessage('whatsapp', party, finalMsg, 'sent');
+    closeWhatsAppModal();
+  }, 900);
+}
+
+function sendSimpleMessage() {
+  const party = DB.get('parties').find(p => p.id === currentWaPartyId);
+  if (!party) return;
+  const phone = formatWhatsAppNumber(party.phone);
+  if (!phone) return toast('Invalid phone number', true);
+  const companyName = company.name || 'Our Company';
+  const msg = `Hello ${party.name},\n\nThis is a message from *${companyName}*.\n\nThank you! 🙏`;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  toast('📱 WhatsApp opened');
+  logMessage('whatsapp', party, msg, 'sent');
+  closeWhatsAppModal();
+}
+
+function generateSummaryPDF(party, invoices) {
+  if (!window.jspdf) return null;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const companyName = company.name || 'Your Company';
+
+  doc.setFillColor(30, 58, 138);
+  doc.rect(0, 0, pageWidth, 22, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('INVOICE SUMMARY', pageWidth / 2, 14, { align: 'center' });
+
+  doc.setTextColor(30, 58, 138);
+  doc.setFontSize(13);
+  doc.text(companyName, 14, 32);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  let y = 38;
+  if (company.gstin) { doc.text('GSTIN: ' + company.gstin, 14, y); y += 5; }
+  if (company.phone) { doc.text('Phone: ' + company.phone, 14, y); y += 5; }
+
+  doc.setFillColor(241, 245, 249);
+  doc.rect(14, y + 4, pageWidth - 28, 18, 'F');
+  doc.setTextColor(30, 58, 138);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('Party:', 18, y + 11);
+  doc.setTextColor(50, 50, 50);
+  doc.setFont('helvetica', 'normal');
+  doc.text(party.name + (party.phone ? '  |  ' + party.phone : ''), 18, y + 17);
+
+  const body = invoices.map((inv, idx) => [
+    idx + 1, inv.invoice_no, inv.invoice_date,
+    inv.items.length + ' items', 'Rs. ' + (parseFloat(inv.total) || 0).toFixed(2)
+  ]);
+
+  doc.autoTable({
+    startY: y + 28,
+    head: [['#', 'Invoice No', 'Date', 'Items', 'Amount']],
+    body,
+    theme: 'grid',
+    headStyles: { fillColor: [30, 58, 138], textColor: 255, fontSize: 9, fontStyle: 'bold' },
+    bodyStyles: { fontSize: 9 },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 50 },
+      2: { cellWidth: 35, halign: 'center' },
+      3: { cellWidth: 35, halign: 'center' },
+      4: { cellWidth: 45, halign: 'right' }
+    },
+    margin: { left: 14, right: 14 }
+  });
+
+  let fy = doc.lastAutoTable.finalY + 10;
+  const total = invoices.reduce((s, i) => s + i.total, 0);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(30, 58, 138);
+  doc.text(`Total Invoices: ${invoices.length}`, 14, fy);
+  doc.text(`Total Amount: Rs. ${total.toFixed(2)}`, pageWidth - 14, fy, { align: 'right' });
+
+  const fileName = `Summary_${(party.name || 'Party').replace(/[^a-zA-Z0-9]/g, '_')}_${todayStr()}.pdf`;
+  doc.save(fileName);
+  return fileName;
+}
+
+// ============ ITEMS ============
+const HSN_DB = [
+  { code: '6109', desc: 'T-shirts, singlets, vests (knitted)' },
+  { code: '6203', desc: "Men's suits, trousers, shorts" },
+  { code: '6204', desc: "Women's suits, dresses, skirts" },
+  { code: '1006', desc: 'Rice' }, { code: '1001', desc: 'Wheat' },
+  { code: '1704', desc: 'Sugar confectionery' }, { code: '1905', desc: 'Bread, pastry, biscuits' },
+  { code: '2106', desc: 'Food preparations' }, { code: '3004', desc: 'Medicaments' },
+  { code: '3304', desc: 'Beauty/makeup preparations' }, { code: '3401', desc: 'Soap' },
+  { code: '4202', desc: 'Bags, handbags' }, { code: '4820', desc: 'Note books, letter pads' },
+  { code: '4819', desc: 'Cartons, boxes (paper)' }, { code: '5208', desc: 'Woven fabrics of cotton' },
+  { code: '7213', desc: 'Iron/steel bars, rods' }, { code: '7326', desc: 'Articles of iron or steel' },
+  { code: '7308', desc: 'Structures of iron/steel' }, { code: '8418', desc: 'Refrigerators, freezers' },
+  { code: '8415', desc: 'Air conditioners' }, { code: '8450', desc: 'Washing machines' },
+  { code: '8517', desc: 'Telephones, mobile phones' }, { code: '8471', desc: 'Computers, laptops' },
+  { code: '8528', desc: 'Monitors, TVs' }, { code: '8504', desc: 'Transformers, chargers' },
+  { code: '9403', desc: 'Furniture' }, { code: '9405', desc: 'Lamps, lighting fittings' },
+  { code: '9503', desc: 'Toys' }, { code: '9619', desc: 'Sanitary napkins, diapers' },
+  { code: '998314', desc: 'IT Design & Development services (SAC)' },
+  { code: '998313', desc: 'IT Consulting services (SAC)' },
+  { code: '998311', desc: 'Management consulting (SAC)' },
+  { code: '997212', desc: 'Rental of commercial property (SAC)' },
+  { code: '998519', desc: 'Other professional services (SAC)' },
+  { code: '996511', desc: 'Road transport of goods (SAC)' },
+  { code: '9954', desc: 'Construction services (SAC)' },
+  { code: '9961', desc: 'Hotel & accommodation (SAC)' },
+  { code: '996331', desc: 'Restaurant services (SAC)' }
+];
+function showHSNSuggestions(input) {
+  const val = input.value.trim().toLowerCase();
+  const box = document.getElementById('hsnSuggestions');
+  if (!val) { box.style.display = 'none'; return; }
+  const matches = HSN_DB.filter(h =>
+    h.code.toLowerCase().includes(val) || h.desc.toLowerCase().includes(val)
+  ).slice(0, 8);
+  if (!matches.length) { box.style.display = 'none'; return; }
+  box.innerHTML = matches.map(m =>
+    `<div onclick="pickHSN('${m.code}')"><b>${m.code}</b><small>${m.desc}</small></div>`
+  ).join('');
+  box.style.display = 'block';
+}
+function pickHSN(code) {
+  document.getElementById('i_hsn').value = code;
+  document.getElementById('hsnSuggestions').style.display = 'none';
+}
+function hideHSNSuggestions() {
+  setTimeout(() => { document.getElementById('hsnSuggestions').style.display = 'none'; }, 200);
+}
+function updateItemPreview() {
+  const name = document.getElementById('i_name').value || 'Item Name';
+  const price = parseFloat(document.getElementById('i_price').value) || 0;
+  const gst = parseFloat(document.getElementById('i_gst').value) || 0;
+  const final = price + (price * gst / 100);
+  document.getElementById('prev_name').textContent = name;
+  document.getElementById('prev_price').textContent = `${fmt(price)} + ${gst}% = ${fmt(final)}`;
+}
+document.getElementById('i_name').addEventListener('input', updateItemPreview);
+
+document.getElementById('itemForm').onsubmit = e => {
+  e.preventDefault();
+  const editId = document.getElementById('itemEditId').value;
+  const data = {
+    name: document.getElementById('i_name').value.trim(),
+    item_type: document.getElementById('i_type').value,
+    hsn: document.getElementById('i_hsn').value.trim(),
+    unit: document.getElementById('i_unit').value,
+    price: parseFloat(document.getElementById('i_price').value) || 0,
+    gst_rate: parseFloat(document.getElementById('i_gst').value) || 0,
+    purchase_price: parseFloat(document.getElementById('i_purchase').value) || 0,
+    stock: parseFloat(document.getElementById('i_stock').value) || 0,
+    low_stock: parseFloat(document.getElementById('i_low').value) || 5
+  };
+  let list = DB.get('items');
+  if (editId) {
+    const idx = list.findIndex(i => i.id === parseInt(editId));
+    if (idx >= 0) list[idx] = { ...list[idx], ...data };
+    toast('✅ Item updated');
+  } else {
+    data.id = DB.nextId('items');
+    list.push(data);
+    toast('✅ Item added');
+  }
+  DB.set('items', list);
+  resetItemForm();
+  renderItems();
+};
+function resetItemForm() {
+  document.getElementById('itemForm').reset();
+  document.getElementById('itemEditId').value = '';
+  document.getElementById('i_gst').value = '18';
+  document.getElementById('i_unit').value = 'PCS';
+  document.getElementById('i_low').value = '5';
+  document.getElementById('itemSubmitBtn').textContent = '💾 Save Item';
+  updateItemPreview();
+}
+function editItem(id) {
+  const item = DB.get('items').find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('itemEditId').value = item.id;
+  document.getElementById('i_name').value = item.name;
+  document.getElementById('i_type').value = item.item_type || 'product';
+  document.getElementById('i_hsn').value = item.hsn || '';
+  document.getElementById('i_unit').value = item.unit || 'PCS';
+  document.getElementById('i_price').value = item.price || 0;
+  document.getElementById('i_gst').value = item.gst_rate || 18;
+  document.getElementById('i_purchase').value = item.purchase_price || 0;
+  document.getElementById('i_stock').value = item.stock || 0;
+  document.getElementById('i_low').value = item.low_stock || 5;
+  document.getElementById('itemSubmitBtn').textContent = '💾 Update Item';
+  updateItemPreview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+let deletedItemBackup = null;
+let deletedItemIndex = null;
+let undoTimer = null;
+function confirmDeleteItem(id, name) {
+  document.getElementById('deleteItemName').textContent = name;
+  document.getElementById('deleteItemId').value = id;
+  document.getElementById('deleteModal').classList.add('active');
+}
+function confirmDeleteAll() {
+  const count = DB.get('items').length;
+  if (count === 0) return toast('No items to delete', true);
+  document.getElementById('deleteItemName').textContent = `ALL ${count} items`;
+  document.getElementById('deleteItemId').value = 'ALL';
+  document.getElementById('deleteModal').classList.add('active');
+}
+function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('active'); }
+function actuallyDeleteItem() {
+  const rawId = document.getElementById('deleteItemId').value;
+  if (rawId === 'ALL') {
+    DB.set('items', []);
+    closeDeleteModal(); renderItems(); toast('🗑️ All items deleted');
+    return;
+  }
+  if (rawId.startsWith('BULK:')) {
+    const ids = rawId.replace('BULK:', '').split(',').map(Number);
+    DB.set('items', DB.get('items').filter(i => !ids.includes(i.id)));
+    closeDeleteModal(); renderItems(); toast(`🗑️ ${ids.length} items deleted`);
+    return;
+  }
+  const id = parseInt(rawId);
+  const list = DB.get('items');
+  const idx = list.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  deletedItemBackup = { ...list[idx] };
+  deletedItemIndex = idx;
+  list.splice(idx, 1);
+  DB.set('items', list);
+  closeDeleteModal(); renderItems();
+  const t = document.getElementById('toast');
+  t.innerHTML = `🗑️ Item removed &nbsp; <button onclick="undoDelete()" style="background:white;color:#10b981;padding:4px 10px;font-size:12px;border-radius:4px;cursor:pointer;font-weight:700;">↩️ UNDO</button>`;
+  t.className = 'toast';
+  t.style.display = 'block';
+  if (undoTimer) clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => {
+    t.style.display = 'none';
+    deletedItemBackup = null; deletedItemIndex = null;
+  }, 6000);
+}
+function undoDelete() {
+  if (!deletedItemBackup) return;
+  const list = DB.get('items');
+  list.splice(deletedItemIndex, 0, deletedItemBackup);
+  DB.set('items', list);
+  deletedItemBackup = null; deletedItemIndex = null;
+  document.getElementById('toast').style.display = 'none';
+  renderItems(); toast('✅ Item restored');
+}
+function toggleSelectAll(cb) {
+  document.querySelectorAll('.item-checkbox').forEach(x => x.checked = cb.checked);
+  updateBulkActionBar();
+}
+function updateBulkActionBar() {
+  const selected = document.querySelectorAll('.item-checkbox:checked').length;
+  const bar = document.getElementById('bulkBar');
+  if (selected > 0) {
+    bar.style.display = 'flex';
+    document.getElementById('bulkCount').textContent = selected;
+  } else bar.style.display = 'none';
+}
+function bulkDelete() {
+  const ids = [...document.querySelectorAll('.item-checkbox:checked')].map(cb => parseInt(cb.value));
+  if (!ids.length) return;
+  document.getElementById('deleteItemName').textContent = `${ids.length} selected items`;
+  document.getElementById('deleteItemId').value = 'BULK:' + ids.join(',');
+  document.getElementById('deleteModal').classList.add('active');
+}
+function getStockBadge(stock, low) {
+  stock = parseFloat(stock) || 0;
+  low = parseFloat(low) || 5;
+  if (stock <= 0) return `<span class="badge out-stock">❌ Out of Stock</span>`;
+  if (stock <= low) return `<span class="badge low-stock">⚠️ Low: ${stock}</span>`;
+  return `<span class="badge in-stock">✅ ${stock} in stock</span>`;
+}
+function renderItems() {
+  const list = DB.get('items');
+  const search = (document.getElementById('itemSearch')?.value || '').toLowerCase();
+  const filtered = search ? list.filter(i =>
+    i.name.toLowerCase().includes(search) || (i.hsn || '').toLowerCase().includes(search)
+  ) : list;
+  const totalValue = list.reduce((s, i) => s + (i.stock * i.price), 0);
+  const lowStockCount = list.filter(i => (i.stock || 0) <= (i.low_stock || 5) && (i.stock || 0) > 0).length;
+  const outStockCount = list.filter(i => (i.stock || 0) <= 0).length;
+  document.getElementById('itemsStats').innerHTML = `
+    <div class="stat-mini"><span>Total Items</span><b>${list.length}</b></div>
+    <div class="stat-mini"><span>Stock Value</span><b>${fmt(totalValue)}</b></div>
+    <div class="stat-mini"><span>Low Stock</span><b style="color:#f59e0b">${lowStockCount}</b></div>
+    <div class="stat-mini"><span>Out of Stock</span><b style="color:#ef4444">${outStockCount}</b></div>
+  `;
+  document.getElementById('itemsList').innerHTML = `
+    <div class="items-toolbar">
+      <div><b>${filtered.length}</b> items ${search ? '(filtered)' : ''}</div>
+      ${list.length > 0 ? `<button class="remove-all-btn" onclick="confirmDeleteAll()">🗑️ Delete All Items</button>` : ''}
+    </div>
+    <div class="bulk-bar" id="bulkBar">
+      <span><b id="bulkCount">0</b> item(s) selected</span>
+      <button class="remove-btn" onclick="bulkDelete()">🗑️ Delete Selected</button>
+      <button class="secondary small" onclick="document.getElementById('selectAll').checked=false;document.querySelectorAll('.item-checkbox').forEach(c=>c.checked=false);updateBulkActionBar()">Cancel</button>
+    </div>
+    ${filtered.length ? `
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
+          <th>Item Name</th><th>Type</th><th>HSN/SAC</th><th>Unit</th>
+          <th>Sale Price</th><th>GST</th><th>Stock</th><th style="min-width:170px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>${filtered.map(i => `
+        <tr>
+          <td><input type="checkbox" class="item-checkbox" value="${i.id}" onchange="updateBulkActionBar()"></td>
+          <td><b>${esc(i.name)}</b></td>
+          <td>${i.item_type === 'service' ? '🛠️ Service' : '📦 Product'}</td>
+          <td>${esc(i.hsn) || '<span style="color:#cbd5e1">—</span>'}</td>
+          <td><span class="badge unit">${esc(i.unit)}</span></td>
+          <td><b>${fmt(i.price)}</b></td>
+          <td><span class="badge gst">${i.gst_rate}%</span></td>
+          <td>${getStockBadge(i.stock, i.low_stock)}</td>
+          <td>
+            <button class="edit-btn" onclick="editItem(${i.id})">✏️ Edit</button>
+            <button class="remove-btn" onclick="confirmDeleteItem(${i.id}, '${escAttr(i.name)}')">🗑️ Remove</button>
+          </td>
+        </tr>
+      `).join('')}</tbody>
+    </table>` : `<div class="empty">
+      ${search ? '🔍 No items match your search' : '📦 No items added yet. Fill the form above to add your first item!'}
+    </div>`}
+  `;
+}
+document.getElementById('itemSearch')?.addEventListener('input', renderItems);
+
+// ============ NEW INVOICE ============
+function prepareInvoiceForm() {
+  const parties = DB.get('parties');
+  document.getElementById('invoice_party').innerHTML = '<option value="">-- Select Party --</option>' +
+    parties.map(p => `<option value="${p.id}">${esc(p.name)} (${p.type})</option>`).join('');
+  document.getElementById('invoice_no').value = 'INV-' + Date.now().toString().slice(-6);
+  document.querySelector('#invoiceForm input[name="invoice_date"]').value = todayStr();
+  document.querySelector('#itemsTable tbody').innerHTML = '';
+  addInvoiceRow();
+  calcInvoice();
+}
+function addInvoiceRow() {
+  const items = DB.get('items');
+  const tb = document.querySelector('#itemsTable tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><select class="itemSel" onchange="fillItem(this)">
+      <option value="">-- Select --</option>
+      ${items.map(i => `<option value="${i.id}" data-hsn="${esc(i.hsn)}" data-rate="${i.price}" data-gst="${i.gst_rate}" data-name="${esc(i.name)}" data-unit="${esc(i.unit)}">${esc(i.name)} (${i.unit})</option>`).join('')}
+    </select></td>
+    <td><input class="hsn" placeholder="HSN"></td>
+    <td><input class="qty" type="number" value="1" step="0.01" oninput="calcInvoice()"></td>
+    <td><input class="rate" type="number" value="0" step="0.01" oninput="calcInvoice()"></td>
+    <td><input class="gst" type="number" value="18" oninput="calcInvoice()"></td>
+    <td><input class="amt" readonly></td>
+    <td><button type="button" class="remove-btn" onclick="this.closest('tr').remove();calcInvoice()">✖</button></td>
+  `;
+  tb.appendChild(tr);
+}
+function fillItem(sel) {
+  const opt = sel.selectedOptions[0];
+  const tr = sel.closest('tr');
+  if (!opt.value) return;
+  tr.querySelector('.hsn').value = opt.dataset.hsn || '';
+  tr.querySelector('.rate').value = opt.dataset.rate || 0;
+  tr.querySelector('.gst').value = opt.dataset.gst || 18;
+  calcInvoice();
+}
+function calcInvoice() {
+  let subtotal = 0, cgst = 0, sgst = 0, igst = 0;
+  document.querySelectorAll('#itemsTable tbody tr').forEach(tr => {
+    const q = parseFloat(tr.querySelector('.qty').value) || 0;
+    const r = parseFloat(tr.querySelector('.rate').value) || 0;
+    const g = parseFloat(tr.querySelector('.gst').value) || 0;
+    const amt = q * r;
+    tr.querySelector('.amt').value = amt.toFixed(2);
+    subtotal += amt;
+    const tax = amt * g / 100;
+    const partyId = parseInt(document.getElementById('invoice_party').value);
+    const party = DB.get('parties').find(p => p.id === partyId);
+    const inter = party && party.state && party.state.toLowerCase() !== company.state.toLowerCase();
+    if (inter) igst += tax;
+    else { cgst += tax / 2; sgst += tax / 2; }
+  });
+  const total = subtotal + cgst + sgst + igst;
+  document.getElementById('invoiceTotals').innerHTML = `
+    Subtotal: ${fmt(subtotal)} | CGST: ${fmt(cgst)} | SGST: ${fmt(sgst)} | IGST: ${fmt(igst)} | <b>Total: ${fmt(total)}</b>
+  `;
+  return { subtotal, cgst, sgst, igst, total };
+}
+document.getElementById('invoice_party').addEventListener('change', calcInvoice);
+
+document.getElementById('invoiceForm').onsubmit = e => {
+  e.preventDefault();
+  const f = Object.fromEntries(new FormData(e.target));
+  const party_id = parseInt(f.party_id);
+  const items = [...document.querySelectorAll('#itemsTable tbody tr')].map(tr => {
+    const sel = tr.querySelector('.itemSel');
+    const opt = sel.selectedOptions[0];
+    const qty = parseFloat(tr.querySelector('.qty').value) || 0;
+    const rate = parseFloat(tr.querySelector('.rate').value) || 0;
+    const gst_rate = parseFloat(tr.querySelector('.gst').value) || 0;
+    return {
+      item_id: sel.value ? parseInt(sel.value) : null,
+      name: opt.dataset.name || opt.textContent.trim(),
+      hsn: tr.querySelector('.hsn').value,
+      qty, rate, gst_rate,
+      amount: qty * rate
+    };
+  }).filter(i => i.qty > 0);
+  if (!items.length) return toast('Add at least one item', true);
+  const totals = calcInvoice();
+  const invoice = {
+    id: DB.nextId('invoices'),
+    invoice_no: f.invoice_no, invoice_date: f.invoice_date,
+    party_id, type: f.type, notes: f.notes, items,
+    subtotal: totals.subtotal, cgst: totals.cgst, sgst: totals.sgst, igst: totals.igst, total: totals.total,
+    created_at: new Date().toISOString()
+  };
+  const list = DB.get('invoices');
+  list.push(invoice);
+  DB.set('invoices', list);
+  const itemList = DB.get('items');
+  items.forEach(it => {
+    if (it.item_id) {
+      const idx = itemList.findIndex(i => i.id === it.item_id);
+      if (idx >= 0) {
+        if (f.type === 'sale') itemList[idx].stock = (itemList[idx].stock || 0) - it.qty;
+        else itemList[idx].stock = (itemList[idx].stock || 0) + it.qty;
+      }
+    }
+  });
+  DB.set('items', itemList);
+  toast('✅ Invoice saved! Total: ' + fmt(totals.total));
+  document.querySelector('nav a[data-page="invoices"]').click();
+};
+function resetInvoiceForm() { prepareInvoiceForm(); }
+
+// ============ INVOICES LIST ============
+function renderInvoices() {
+  const list = DB.get('invoices').slice().reverse();
+  const parties = DB.get('parties');
+  document.getElementById('invoicesList').innerHTML = list.length ? `
+    <table>
+      <thead><tr>
+        <th>Invoice No</th><th>Date</th><th>Party</th><th>Type</th>
+        <th>Subtotal</th><th>CGST</th><th>SGST</th><th>IGST</th><th>Total</th><th>Actions</th>
+      </tr></thead>
+      <tbody>${list.map(i => {
+        const p = parties.find(x => x.id === i.party_id);
+        const hasPhone = p && p.phone;
+        const hasEmail = p && p.email;
+        return `<tr>
+          <td><b>${esc(i.invoice_no)}</b></td><td>${i.invoice_date}</td>
+          <td>${esc(p?.name || '-')}</td><td>${i.type}</td>
+          <td>${fmt(i.subtotal)}</td><td>${fmt(i.cgst)}</td>
+          <td>${fmt(i.sgst)}</td><td>${fmt(i.igst)}</td>
+          <td><b>${fmt(i.total)}</b></td>
+          <td>
+            <button class="edit-btn" onclick="viewInvoice(${i.id})">👁️ View</button>
+            <button class="pdf-btn" onclick="downloadInvoicePDF(${i.id})">📄 PDF</button>
+            ${hasPhone ? `
+              <button class="whatsapp" onclick="quickSendInvoice(${i.id})">📱 WA</button>
+              <button class="sms-btn" onclick="quickSendSMSInvoice(${i.id})">💬 SMS</button>
+            ` : ''}
+            ${hasEmail ? `<button class="email-btn" onclick="quickSendEmailInvoice(${i.id})">📧 Email</button>` : ''}
+            <button class="remove-btn" onclick="delInvoice(${i.id})">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>` : '<div class="empty">No invoices yet</div>';
+}
+function delInvoice(id) {
+  if (!confirm('Delete this invoice? Stock will NOT be reversed.')) return;
+  DB.set('invoices', DB.get('invoices').filter(i => i.id !== id));
+  toast('🗑️ Invoice deleted'); renderInvoices();
+}
+function quickSendInvoice(invoiceId) {
+  const inv = DB.get('invoices').find(i => i.id === invoiceId);
+  if (!inv) return;
+  const party = DB.get('parties').find(p => p.id === inv.party_id);
+  if (!party || !party.phone) return toast('Party phone number missing', true);
+  const phone = formatWhatsAppNumber(party.phone);
+
+  try { generateInvoicePDF(inv, party, true); } catch (e) { console.error(e); }
+
+  const msg = buildInvoiceMessage(inv, party);
+  const finalMsg = msg + `\n\n📎 _Invoice PDF bhi attach kar raha hoon. Please check._`;
+
+  setTimeout(() => {
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(finalMsg)}`, '_blank');
+    toast('📄 PDF downloaded + 📱 WhatsApp opened');
+    logMessage('whatsapp', party, finalMsg, 'sent');
+  }, 900);
+}
+
+function quickSendSMSInvoice(invoiceId) {
+  const inv = DB.get('invoices').find(i => i.id === invoiceId);
+  if (!inv) return;
+  const party = DB.get('parties').find(p => p.id === inv.party_id);
+  if (!party || !party.phone) return toast('Party phone number missing', true);
+  openSMSModal(party.id);
+}
+
+function quickSendEmailInvoice(invoiceId) {
+  const inv = DB.get('invoices').find(i => i.id === invoiceId);
+  if (!inv) return;
+  const party = DB.get('parties').find(p => p.id === inv.party_id);
+  if (!party || !party.email) return toast('Party email missing', true);
+  openEmailModal(party.id);
+}
+
+function viewInvoice(id) {
+  const inv = DB.get('invoices').find(i => i.id === id);
+  if (!inv) return;
+  const p = DB.get('parties').find(x => x.id === inv.party_id) || {};
+  document.getElementById('printContent').innerHTML = `
+    <div class="invoice-print">
+      <h1>TAX INVOICE</h1>
+      <div class="row">
+        <div>
+          <b>${esc(company.name)}</b><br>
+          ${esc(company.address)}<br>
+          GSTIN: ${esc(company.gstin)}<br>
+          Phone: ${esc(company.phone)}<br>
+          Email: ${esc(company.email)}
+        </div>
+        <div style="text-align:right">
+          <b>Invoice No:</b> ${esc(inv.invoice_no)}<br>
+          <b>Date:</b> ${inv.invoice_date}<br>
+          <b>Type:</b> ${inv.type.toUpperCase()}
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div>
+          <b>Bill To:</b><br>
+          ${esc(p.name || '-')}<br>
+          ${esc(p.address || '')}<br>
+          ${p.gstin ? 'GSTIN: ' + esc(p.gstin) : ''}<br>
+          ${esc(p.state || '')}
+        </div>
+      </div>
+      <table border="1" cellpadding="6" style="width:100%; border-collapse: collapse;">
+        <thead style="background:#f1f5f9">
+          <tr><th>#</th><th>Item</th><th>HSN</th><th>Qty</th><th>Rate</th><th>GST%</th><th>Amount</th></tr>
+        </thead>
+        <tbody>
+          ${inv.items.map((it, idx) => `<tr>
+            <td>${idx + 1}</td><td>${esc(it.name)}</td><td>${esc(it.hsn)}</td>
+            <td>${it.qty}</td><td>${fmt(it.rate)}</td><td>${it.gst_rate}%</td>
+            <td>${fmt(it.amount)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div style="text-align:right; font-size:14px; line-height:1.8;">
+        Subtotal: <b>${fmt(inv.subtotal)}</b><br>
+        CGST: ${fmt(inv.cgst)} | SGST: ${fmt(inv.sgst)} | IGST: ${fmt(inv.igst)}<br>
+        <span style="font-size:18px; color:#1e3a8a;">Total: <b>${fmt(inv.total)}</b></span>
+      </div>
+      ${inv.notes ? `<p style="margin-top:12px; font-size:13px;"><b>Notes:</b> ${esc(inv.notes)}</p>` : ''}
+      <p style="margin-top:30px; text-align:right; font-size:12px;">For ${esc(company.name)}<br><br><br>Authorised Signatory</p>
+    </div>
+  `;
+
+  const actionsEl = document.getElementById('printModalActions');
+  actionsEl.innerHTML = `
+    <button onclick="window.print()">🖨️ Print</button>
+    <button class="pdf-btn" onclick="downloadInvoicePDF(${inv.id})">📄 Download PDF</button>
+    ${p.phone ? `
+      <button class="whatsapp" onclick="sendFromView(${inv.id})">📱 WhatsApp</button>
+      <button class="sms-btn" onclick="sendSMSFromView(${inv.id})">💬 SMS</button>
+    ` : ''}
+    ${p.email ? `<button class="email-btn" onclick="sendEmailFromView(${inv.id})">📧 Email</button>` : ''}
+    <button onclick="closeModal()" class="secondary">Close</button>
+  `;
+
+  document.getElementById('printModal').classList.add('active');
+}
+function sendFromView(invoiceId) { closeModal(); quickSendInvoice(invoiceId); }
+function sendSMSFromView(invoiceId) { closeModal(); quickSendSMSInvoice(invoiceId); }
+function sendEmailFromView(invoiceId) { closeModal(); quickSendEmailInvoice(invoiceId); }
+function closeModal() { document.getElementById('printModal').classList.remove('active'); }
+
+// ============ PAYMENTS ============
+function preparePaymentForm() {
+  const parties = DB.get('parties');
+  document.getElementById('payment_party').innerHTML = '<option value="">-- Select Party --</option>' +
+    parties.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  document.querySelector('#paymentForm input[name="date"]').value = todayStr();
+}
+document.getElementById('paymentForm').onsubmit = e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  data.id = DB.nextId('payments');
+  data.party_id = parseInt(data.party_id);
+  data.amount = parseFloat(data.amount);
+  const list = DB.get('payments');
+  list.push(data);
+  DB.set('payments', list);
+  e.target.reset(); preparePaymentForm();
+  toast('✅ Payment recorded'); renderPayments();
+};
+function renderPayments() {
+  const list = DB.get('payments').slice().reverse();
+  const parties = DB.get('parties');
+  document.getElementById('paymentsList').innerHTML = list.length ? `
+    <table>
+      <thead><tr><th>Date</th><th>Party</th><th>Type</th><th>Mode</th><th>Amount</th><th>Notes</th><th></th></tr></thead>
+      <tbody>${list.map(p => {
+        const party = parties.find(x => x.id === p.party_id);
+        return `<tr>
+          <td>${p.date}</td><td>${esc(party?.name || '-')}</td>
+          <td>${p.type === 'in' ? '⬇️ In' : '⬆️ Out'}</td>
+          <td>${esc(p.mode)}</td><td><b>${fmt(p.amount)}</b></td>
+          <td>${esc(p.notes)}</td>
+          <td><button class="remove-btn" onclick="delPayment(${p.id})">🗑️ Remove</button></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>` : '<div class="empty">No payments yet</div>';
+}
+function delPayment(id) {
+  if (!confirm('Delete this payment?')) return;
+  DB.set('payments', DB.get('payments').filter(p => p.id !== id));
+  toast('🗑️ Payment deleted'); renderPayments();
+}
+
+// ============ GST REPORT ============
+document.getElementById('gstFrom').value = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+document.getElementById('gstTo').value = todayStr();
+let lastGSTReport = null;
+document.getElementById('gstForm').onsubmit = e => {
+  e.preventDefault();
+  const from = document.getElementById('gstFrom').value;
+  const to = document.getElementById('gstTo').value;
+  const invoices = DB.get('invoices').filter(i =>
+    i.type === 'sale' && i.invoice_date >= from && i.invoice_date <= to
+  );
+  const parties = DB.get('parties');
+  const summary = invoices.reduce((a, r) => {
+    a.taxable += r.subtotal; a.cgst += r.cgst; a.sgst += r.sgst; a.igst += r.igst; a.total += r.total;
+    return a;
+  }, { taxable: 0, cgst: 0, sgst: 0, igst: 0, total: 0 });
+  lastGSTReport = { invoices, parties, summary };
+  document.getElementById('gstSummary').innerHTML = `
+    <div class="cards">
+      <div class="card"><span>Taxable Value</span><b>${fmt(summary.taxable)}</b></div>
+      <div class="card green"><span>CGST</span><b>${fmt(summary.cgst)}</b></div>
+      <div class="card green"><span>SGST</span><b>${fmt(summary.sgst)}</b></div>
+      <div class="card orange"><span>IGST</span><b>${fmt(summary.igst)}</b></div>
+      <div class="card purple"><span>Total</span><b>${fmt(summary.total)}</b></div>
+    </div>`;
+  document.getElementById('gstTable').innerHTML = invoices.length ? `
+    <table>
+      <thead><tr>
+        <th>Invoice</th><th>Date</th><th>Party</th><th>GSTIN</th>
+        <th>Taxable</th><th>CGST</th><th>SGST</th><th>IGST</th><th>Total</th>
+      </tr></thead>
+      <tbody>${invoices.map(r => {
+        const p = parties.find(x => x.id === r.party_id) || {};
+        return `<tr>
+          <td>${esc(r.invoice_no)}</td><td>${r.invoice_date}</td>
+          <td>${esc(p.name || '-')}</td><td>${esc(p.gstin || '')}</td>
+          <td>${fmt(r.subtotal)}</td><td>${fmt(r.cgst)}</td>
+          <td>${fmt(r.sgst)}</td><td>${fmt(r.igst)}</td>
+          <td><b>${fmt(r.total)}</b></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>` : '<div class="empty">No sales in this period</div>';
+};
+function exportGST() {
+  if (!lastGSTReport) return toast('Generate the report first', true);
+  const { invoices, parties, summary } = lastGSTReport;
+  const rows = [
+    ['Invoice No', 'Date', 'Party', 'GSTIN', 'Taxable', 'CGST', 'SGST', 'IGST', 'Total'],
+    ...invoices.map(r => {
+      const p = parties.find(x => x.id === r.party_id) || {};
+      return [r.invoice_no, r.invoice_date, p.name || '', p.gstin || '',
+        r.subtotal, r.cgst, r.sgst, r.igst, r.total];
+    }),
+    [],
+    ['TOTAL', '', '', '', summary.taxable, summary.cgst, summary.sgst, summary.igst, summary.total]
+  ];
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  downloadFile('GST_Report.csv', csv, 'text/csv');
+}
+function downloadFile(name, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============ GST FILING ============
+let currentFilingTab = 'gstr1';
+function initFilingPage() {
+  const now = new Date();
+  const mi = document.getElementById('filingMonth');
+  if (!mi.value) mi.value = now.toISOString().slice(0, 7);
+  togglePeriodFields();
+  renderFilingHistory();
+}
+function switchFilingTab(tab) {
+  currentFilingTab = tab;
+  document.querySelectorAll('.filing-tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.filing-content').forEach(c => c.style.display = 'none');
+  document.getElementById(tab + 'Content').style.display = 'block';
+  if (tab === 'history') renderFilingHistory();
+}
+function togglePeriodFields() {
+  const type = document.getElementById('filingPeriodType').value;
+  document.getElementById('monthField').style.display = type === 'monthly' ? 'block' : 'none';
+  document.getElementById('quarterField').style.display = type === 'quarterly' ? 'block' : 'none';
+  document.getElementById('fyField').style.display = type === 'quarterly' ? 'block' : 'none';
+  document.getElementById('customFromField').style.display = type === 'custom' ? 'block' : 'none';
+  document.getElementById('customToField').style.display = type === 'custom' ? 'block' : 'none';
+}
+function getFilingPeriod() {
+  const type = document.getElementById('filingPeriodType').value;
+  if (type === 'monthly') {
+    const m = document.getElementById('filingMonth').value;
+    if (!m) { toast('Please select a month', true); return null; }
+    const [year, month] = m.split('-');
+    const from = `${year}-${month}-01`;
+    const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+    const to = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
+    const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return { from, to, label: `${mn[parseInt(month) - 1]} ${year}`, key: m };
+  }
+  if (type === 'quarterly') {
+    const q = document.getElementById('filingQuarter').value;
+    const fy = document.getElementById('filingFY').value;
+    const [sy, ey] = fy.split('-').map(Number);
+    let sm, em;
+    if (q === 'Q1') { sm = 4; em = 6; }
+    else if (q === 'Q2') { sm = 7; em = 9; }
+    else if (q === 'Q3') { sm = 10; em = 12; }
+    else { sm = 1; em = 3; }
+    const fyStart = q === 'Q4' ? ey : sy;
+    const from = `${fyStart}-${String(sm).padStart(2, '0')}-01`;
+    const lastDay = new Date(fyStart, em, 0).getDate();
+    const to = `${fyStart}-${String(em).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    return { from, to, label: `${q} ${fy}`, key: `${q}-${fy}` };
+  }
+  if (type === 'custom') {
+    const from = document.getElementById('filingFrom').value;
+    const to = document.getElementById('filingTo').value;
+    if (!from || !to) { toast('Please select both From and To dates', true); return null; }
+    return { from, to, label: `${from} to ${to}`, key: `${from}_${to}` };
+  }
+}
+function generateFilingData() {
+  const period = getFilingPeriod();
+  if (!period) return;
+  if (currentFilingTab === 'gstr1') generateGSTR1(period);
+  else if (currentFilingTab === 'gstr3b') generateGSTR3B(period);
+  else renderFilingHistory();
+}
+function generateGSTR1(period) {
+  const invoices = DB.get('invoices').filter(i =>
+    i.type === 'sale' && i.invoice_date >= period.from && i.invoice_date <= period.to
+  );
+  const parties = DB.get('parties');
+  const b2b = invoices.filter(i => {
+    const p = parties.find(x => x.id === i.party_id);
+    return p && p.gstin && p.gstin.trim().length > 0;
+  });
+  const b2c = invoices.filter(i => !b2b.includes(i));
+  const hsnSummary = {};
+  invoices.forEach(inv => {
+    inv.items.forEach(it => {
+      const key = it.hsn || 'NA';
+      if (!hsnSummary[key]) hsnSummary[key] = { hsn: key, qty: 0, taxable: 0, cgst: 0, sgst: 0, igst: 0, rate: it.gst_rate };
+      hsnSummary[key].qty += it.qty;
+      hsnSummary[key].taxable += it.amount;
+      const p = parties.find(x => x.id === inv.party_id);
+      const inter = p && p.state && p.state.toLowerCase() !== company.state.toLowerCase();
+      const tax = it.amount * it.gst_rate / 100;
+      if (inter) hsnSummary[key].igst += tax;
+      else { hsnSummary[key].cgst += tax / 2; hsnSummary[key].sgst += tax / 2; }
+    });
+  });
+  const filings = DB.get('filings');
+  const existingFiling = filings.find(f => f.type === 'GSTR-1' && f.periodKey === period.key);
+  const totalTaxable = invoices.reduce((s, i) => s + i.subtotal, 0);
+  const totalCgst = invoices.reduce((s, i) => s + i.cgst, 0);
+  const totalSgst = invoices.reduce((s, i) => s + i.sgst, 0);
+  const totalIgst = invoices.reduce((s, i) => s + i.igst, 0);
+  const totalValue = invoices.reduce((s, i) => s + i.total, 0);
+  const statusBanner = existingFiling
+    ? `<div class="status-banner filed"><span class="icon">✅</span> Return FILED on ${new Date(existingFiling.filedAt).toLocaleString()}</div>`
+    : `<div class="status-banner pending"><span class="icon">⏳</span> Return PENDING - Not yet filed</div>`;
+  document.getElementById('gstr1Result').innerHTML = `
+    ${statusBanner}
+    <div class="return-card">
+      <div class="header">
+        <h3>📤 GSTR-1 - Outward Supplies</h3>
+        <div class="meta"><b>Period:</b> ${period.label} | <b>GSTIN:</b> ${esc(company.gstin || 'Not set')}</div>
+      </div>
+      <div class="cards">
+        <div class="card"><span>Total Invoices</span><b>${invoices.length}</b></div>
+        <div class="card green"><span>Taxable Value</span><b>${fmt(totalTaxable)}</b></div>
+        <div class="card orange"><span>Total Tax</span><b>${fmt(totalCgst + totalSgst + totalIgst)}</b></div>
+        <div class="card purple"><span>Invoice Value</span><b>${fmt(totalValue)}</b></div>
+      </div>
+      <h3>📋 Section 1: B2B Invoices (Registered Parties)</h3>
+      ${b2b.length ? `
+        <table class="filing-summary-table">
+          <thead><tr><th>GSTIN</th><th>Party Name</th><th>Invoice No</th><th>Date</th><th>Invoice Value</th><th>Taxable</th><th>CGST</th><th>SGST</th><th>IGST</th></tr></thead>
+          <tbody>${b2b.map(inv => {
+            const p = parties.find(x => x.id === inv.party_id) || {};
+            return `<tr>
+              <td>${esc(p.gstin || '-')}</td><td>${esc(p.name || '-')}</td>
+              <td>${esc(inv.invoice_no)}</td><td>${inv.invoice_date}</td>
+              <td class="num">${fmt(inv.total)}</td><td class="num">${fmt(inv.subtotal)}</td>
+              <td class="num">${fmt(inv.cgst)}</td><td class="num">${fmt(inv.sgst)}</td>
+              <td class="num">${fmt(inv.igst)}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>` : '<div class="empty">No B2B invoices</div>'}
+      <h3>📋 Section 2: B2C Invoices</h3>
+      ${b2c.length ? `
+        <table class="filing-summary-table">
+          <thead><tr><th>Invoice No</th><th>Date</th><th>Party</th><th>Invoice Value</th><th>Taxable</th><th>CGST</th><th>SGST</th><th>IGST</th></tr></thead>
+          <tbody>${b2c.map(inv => {
+            const p = parties.find(x => x.id === inv.party_id) || {};
+            return `<tr>
+              <td>${esc(inv.invoice_no)}</td><td>${inv.invoice_date}</td>
+              <td>${esc(p.name || 'Cash Sale')}</td>
+              <td class="num">${fmt(inv.total)}</td><td class="num">${fmt(inv.subtotal)}</td>
+              <td class="num">${fmt(inv.cgst)}</td><td class="num">${fmt(inv.sgst)}</td>
+              <td class="num">${fmt(inv.igst)}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>` : '<div class="empty">No B2C invoices</div>'}
+      <h3>📦 Section 3: HSN-wise Summary</h3>
+      ${Object.keys(hsnSummary).length ? `
+        <table class="filing-summary-table">
+          <thead><tr><th>HSN/SAC</th><th>Qty</th><th>Taxable</th><th>CGST</th><th>SGST</th><th>IGST</th><th>Total Tax</th></tr></thead>
+          <tbody>${Object.values(hsnSummary).map(h => `<tr>
+            <td><b>${esc(h.hsn)}</b></td><td class="num">${h.qty}</td>
+            <td class="num">${fmt(h.taxable)}</td><td class="num">${fmt(h.cgst)}</td>
+            <td class="num">${fmt(h.sgst)}</td><td class="num">${fmt(h.igst)}</td>
+            <td class="num"><b>${fmt(h.cgst + h.sgst + h.igst)}</b></td>
+          </tr>`).join('')}</tbody>
+        </table>` : '<div class="empty">No HSN data</div>'}
+      <div class="filing-actions">
+        <button class="success" onclick="exportGSTR1CSV('${period.key}')">⬇️ Download GSTR-1 CSV</button>
+        <button onclick="printFiling('gstr1')" class="secondary">🖨️ Print</button>
+        ${!existingFiling
+          ? `<button class="success" onclick="openFilingModal('GSTR-1', '${period.key}', '${period.label}')">✅ Mark as Filed</button>`
+          : `<button class="secondary" onclick="unmarkFiled('GSTR-1', '${period.key}')">🔄 Unmark Filed</button>`}
+      </div>
+    </div>
+  `;
+}
+function generateGSTR3B(period) {
+  const invoices = DB.get('invoices');
+  const parties = DB.get('parties');
+  const sales = invoices.filter(i => i.type === 'sale' && i.invoice_date >= period.from && i.invoice_date <= period.to);
+  const purchases = invoices.filter(i => i.type === 'purchase' && i.invoice_date >= period.from && i.invoice_date <= period.to);
+  let outInterTaxable = 0, outIntraTaxable = 0, outIgst = 0, outCgst = 0, outSgst = 0;
+  sales.forEach(inv => {
+    const p = parties.find(x => x.id === inv.party_id);
+    const inter = p && p.state && p.state.toLowerCase() !== company.state.toLowerCase();
+    if (inter) { outInterTaxable += inv.subtotal; outIgst += inv.igst; }
+    else { outIntraTaxable += inv.subtotal; outCgst += inv.cgst; outSgst += inv.sgst; }
+  });
+  let itcIgst = 0, itcCgst = 0, itcSgst = 0, inInterTaxable = 0, inIntraTaxable = 0;
+  purchases.forEach(inv => {
+    const p = parties.find(x => x.id === inv.party_id);
+    const inter = p && p.state && p.state.toLowerCase() !== company.state.toLowerCase();
+    if (inter) { inInterTaxable += inv.subtotal; itcIgst += inv.igst; }
+    else { inIntraTaxable += inv.subtotal; itcCgst += inv.cgst; itcSgst += inv.sgst; }
+  });
+  const netIgst = Math.max(0, outIgst - itcIgst);
+  const netCgst = Math.max(0, outCgst - itcCgst);
+  const netSgst = Math.max(0, outSgst - itcSgst);
+  const totalPayable = netIgst + netCgst + netSgst;
+  const cfIgst = Math.max(0, itcIgst - outIgst);
+  const cfCgst = Math.max(0, itcCgst - outCgst);
+  const cfSgst = Math.max(0, itcSgst - outSgst);
+  const filings = DB.get('filings');
+  const existingFiling = filings.find(f => f.type === 'GSTR-3B' && f.periodKey === period.key);
+  const statusBanner = existingFiling
+    ? `<div class="status-banner filed"><span class="icon">✅</span> Return FILED on ${new Date(existingFiling.filedAt).toLocaleString()}</div>`
+    : `<div class="status-banner pending"><span class="icon">⏳</span> Return PENDING</div>`;
+  document.getElementById('gstr3bResult').innerHTML = `
+    ${statusBanner}
+    <div class="return-card">
+      <div class="header">
+        <h3>📊 GSTR-3B - Monthly Summary Return</h3>
+        <div class="meta"><b>Period:</b> ${period.label} | <b>GSTIN:</b> ${esc(company.gstin || 'Not set')}</div>
+      </div>
+      <h3>3.1 - Outward Supplies (Sales)</h3>
+      <table class="filing-summary-table">
+        <thead><tr><th>Nature</th><th>Taxable</th><th>IGST</th><th>CGST</th><th>SGST</th></tr></thead>
+        <tbody>
+          <tr><td>(a) Inter-state</td><td class="num">${fmt(outInterTaxable)}</td><td class="num">${fmt(outIgst)}</td><td class="num">—</td><td class="num">—</td></tr>
+          <tr><td>(b) Intra-state</td><td class="num">${fmt(outIntraTaxable)}</td><td class="num">—</td><td class="num">${fmt(outCgst)}</td><td class="num">${fmt(outSgst)}</td></tr>
+        </tbody>
+      </table>
+      <h3>4. Eligible ITC</h3>
+      <table class="filing-summary-table">
+        <thead><tr><th>Details</th><th>Taxable</th><th>IGST</th><th>CGST</th><th>SGST</th></tr></thead>
+        <tbody>
+          <tr><td>(A) Inter-state purchases</td><td class="num">${fmt(inInterTaxable)}</td><td class="num">${fmt(itcIgst)}</td><td class="num">—</td><td class="num">—</td></tr>
+          <tr><td>(B) Intra-state purchases</td><td class="num">${fmt(inIntraTaxable)}</td><td class="num">—</td><td class="num">${fmt(itcCgst)}</td><td class="num">${fmt(itcSgst)}</td></tr>
+        </tbody>
+      </table>
+      <h3>5. Tax Liability & Payment</h3>
+      <div class="tax-calc-box">
+        <div class="row"><span>Outward Tax</span><span>IGST: ${fmt(outIgst)} | CGST: ${fmt(outCgst)} | SGST: ${fmt(outSgst)}</span></div>
+        <div class="row"><span>Less: ITC</span><span>IGST: ${fmt(itcIgst)} | CGST: ${fmt(itcCgst)} | SGST: ${fmt(itcSgst)}</span></div>
+        <div class="row ${totalPayable > 0 ? 'payable' : 'credit'}"><span><b>Net Tax ${totalPayable > 0 ? 'Payable' : 'Credit'}</b></span><span><b>IGST: ${fmt(netIgst)} | CGST: ${fmt(netCgst)} | SGST: ${fmt(netSgst)}</b></span></div>
+        <div class="row total ${totalPayable > 0 ? 'payable' : 'credit'}"><span>💰 Total ${totalPayable > 0 ? 'Payable' : 'Refundable'}</span><span>${fmt(totalPayable)}</span></div>
+      </div>
+      ${(cfIgst + cfCgst + cfSgst) > 0 ? `
+        <div class="status-banner filed" style="margin-top: 16px;">
+          <span class="icon">💾</span>
+          ITC Carry Forward: IGST ${fmt(cfIgst)} | CGST ${fmt(cfCgst)} | SGST ${fmt(cfSgst)}
+        </div>
+      ` : ''}
+      <div class="filing-actions">
+        <button class="success" onclick="exportGSTR3BCSV('${period.key}')">⬇️ Download GSTR-3B CSV</button>
+        <button onclick="printFiling('gstr3b')" class="secondary">🖨️ Print</button>
+        ${!existingFiling
+          ? `<button class="success" onclick="openFilingModal('GSTR-3B', '${period.key}', '${period.label}')">✅ Mark as Filed</button>`
+          : `<button class="secondary" onclick="unmarkFiled('GSTR-3B', '${period.key}')">🔄 Unmark Filed</button>`}
+      </div>
+    </div>
+  `;
+  window._lastGSTR3B = { period, outInterTaxable, outIntraTaxable, outIgst, outCgst, outSgst, inInterTaxable, inIntraTaxable, itcIgst, itcCgst, itcSgst, netIgst, netCgst, netSgst, totalPayable };
+}
+function openFilingModal(type, key, label) {
+  document.getElementById('filingDetails').textContent = `${type} — ${label}`;
+  document.getElementById('filingReturnType').value = type;
+  document.getElementById('filingPeriodKey').value = key;
+  document.getElementById('filingModal').classList.add('active');
+}
+function closeFilingModal() { document.getElementById('filingModal').classList.remove('active'); }
+function confirmFiling() {
+  const type = document.getElementById('filingReturnType').value;
+  const periodKey = document.getElementById('filingPeriodKey').value;
+  const filings = DB.get('filings');
+  const idx = filings.findIndex(f => f.type === type && f.periodKey === periodKey);
+  const record = {
+    id: idx >= 0 ? filings[idx].id : DB.nextId('filings'),
+    type, periodKey,
+    filedAt: new Date().toISOString(),
+    gstin: company.gstin
+  };
+  if (idx >= 0) filings[idx] = record;
+  else filings.push(record);
+  DB.set('filings', filings);
+  closeFilingModal();
+  toast('✅ Marked as Filed');
+  generateFilingData();
+  renderFilingHistory();
+}
+function unmarkFiled(type, key) {
+  if (!confirm('Unmark as filed?')) return;
+  DB.set('filings', DB.get('filings').filter(f => !(f.type === type && f.periodKey === key)));
+  toast('🔄 Unmarked'); generateFilingData(); renderFilingHistory();
+}
+function renderFilingHistory() {
+  const filings = DB.get('filings').slice().reverse();
+  document.getElementById('filingHistoryResult').innerHTML = filings.length ? `
+    <div class="return-card">
+      <h3>📁 Filing History</h3>
+      <p style="color:#64748b; font-size: 13px; margin-bottom: 16px;">Total ${filings.length} returns filed</p>
+      <table class="filing-history">
+        <thead><tr><th>Return Type</th><th>Period</th><th>GSTIN</th><th>Filed On</th><th>Status</th><th></th></tr></thead>
+        <tbody>${filings.map(f => `<tr>
+          <td><b>${esc(f.type)}</b></td><td>${esc(f.periodKey)}</td>
+          <td>${esc(f.gstin || '-')}</td>
+          <td>${new Date(f.filedAt).toLocaleString()}</td>
+          <td><span class="badge in-stock">✅ Filed</span></td>
+          <td><button class="remove-btn" onclick="unmarkFiled('${f.type}', '${f.periodKey}')">🔄 Unmark</button></td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+  ` : '<div class="empty">📁 No returns filed yet</div>';
+}
+function exportGSTR1CSV(key) {
+  const period = getFilingPeriod();
+  if (!period) return;
+  const invoices = DB.get('invoices').filter(i => i.type === 'sale' && i.invoice_date >= period.from && i.invoice_date <= period.to);
+  const parties = DB.get('parties');
+  const rows = [
+    ['GSTR-1 Export', company.name, 'GSTIN: ' + (company.gstin || 'NA'), 'Period: ' + period.label], [],
+    ['Invoice No', 'Date', 'Party', 'GSTIN', 'Place of Supply', 'Invoice Value', 'Taxable', 'CGST', 'SGST', 'IGST', 'Type']
+  ];
+  invoices.forEach(inv => {
+    const p = parties.find(x => x.id === inv.party_id) || {};
+    rows.push([inv.invoice_no, inv.invoice_date, p.name || 'Cash', p.gstin || '', p.state || '',
+      inv.total, inv.subtotal, inv.cgst, inv.sgst, inv.igst, (p.gstin && p.gstin.trim()) ? 'B2B' : 'B2C']);
+  });
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  downloadFile(`GSTR1_${period.key}.csv`, csv, 'text/csv');
+  toast('✅ GSTR-1 CSV downloaded');
+}
+function exportGSTR3BCSV(key) {
+  const d = window._lastGSTR3B;
+  if (!d) return toast('Generate the return first', true);
+  const rows = [
+    ['GSTR-3B Summary', company.name, 'GSTIN: ' + (company.gstin || 'NA'), 'Period: ' + d.period.label], [],
+    ['Section', 'Description', 'Taxable', 'IGST', 'CGST', 'SGST'],
+    ['3.1(a)', 'Outward - Inter', d.outInterTaxable, d.outIgst, 0, 0],
+    ['3.1(b)', 'Outward - Intra', d.outIntraTaxable, 0, d.outCgst, d.outSgst],
+    ['4(A)', 'ITC - Inter', d.inInterTaxable, d.itcIgst, 0, 0],
+    ['4(B)', 'ITC - Intra', d.inIntraTaxable, 0, d.itcCgst, d.itcSgst],
+    ['5', 'Net Payable', '', d.netIgst, d.netCgst, d.netSgst],
+    ['5', 'Total', '', '', '', d.totalPayable]
+  ];
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  downloadFile(`GSTR3B_${d.period.key}.csv`, csv, 'text/csv');
+  toast('✅ GSTR-3B CSV downloaded');
+}
+function printFiling(tab) {
+  const content = tab === 'gstr1'
+    ? document.getElementById('gstr1Result').innerHTML
+    : document.getElementById('gstr3bResult').innerHTML;
+  const w = window.open('', '', 'width=900,height=700');
+  w.document.write(`
+    <html><head><title>GST Return</title>
+    <style>
+      body { font-family: Arial; padding: 20px; }
+      table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+      th, td { border: 1px solid #ccc; padding: 6px; font-size: 12px; text-align: left; }
+      th { background: #1e3a8a; color: white; }
+      .card, .cards, .filing-actions, .status-banner button { display: none; }
+      .return-card { box-shadow: none; border: none; }
+      h3 { color: #1e3a8a; margin-top: 16px; }
+      .num { text-align: right; }
+    </style></head><body>
+    <h1 style="color:#1e3a8a;">${esc(company.name)}</h1>
+    <p>GSTIN: ${esc(company.gstin || 'NA')}</p><hr>
+    ${content}
+    </body></html>
+  `);
+  w.print();
+}
+
+// ============ SETTINGS ============
+function loadSettings() {
+  document.getElementById('s_company').value = company.name || '';
+  document.getElementById('s_gstin').value = company.gstin || '';
+  document.getElementById('s_phone').value = company.phone || '';
+  document.getElementById('s_email').value = company.email || '';
+  document.getElementById('s_address').value = company.address || '';
+  document.getElementById('s_state').value = company.state || '';
+  loadSMSSettings();
+  loadEmailSettings();
+  renderSubscriptionInfo();
+}
+
+function renderSubscriptionInfo() {
+  const box = document.getElementById('subInfoBox');
+  if (!CURRENT_SUBSCRIPTION) {
+    box.innerHTML = '<div style="color:#64748b;">No subscription info available</div>';
+    return;
+  }
+  const days = getDaysRemaining(CURRENT_SUBSCRIPTION);
+  const start = new Date(CURRENT_SUBSCRIPTION.startDate);
+  const expiry = new Date(CURRENT_SUBSCRIPTION.expiryDate);
+  box.innerHTML = `
+    <div style="font-size: 15px; font-weight: 700; color: #1e3a8a; margin-bottom: 10px;">📦 ${CURRENT_SUBSCRIPTION.plan} Plan</div>
+    <div style="font-size: 13px; line-height: 1.8; color: #475569;">
+      <div>👤 <strong>User ID:</strong> ${esc(CURRENT_USER.userId)}</div>
+      <div>📅 <strong>Start Date:</strong> ${fmtSubDate(start)}</div>
+      <div>🔚 <strong>Expiry Date:</strong> ${fmtSubDate(expiry)}</div>
+      <div>⏳ <strong>Days Remaining:</strong> <span style="color: ${days <= 7 ? '#dc2626' : days <= 30 ? '#f59e0b' : '#10b981'}; font-weight: 700;">${days} days</span></div>
+    </div>
+    <div style="margin-top: 12px; font-size: 12px; color: #64748b;">ℹ️ Renewal ke liye software provider se sampark karein.</div>
+  `;
+}
+
+function saveSettings() {
+  company = {
+    name: document.getElementById('s_company').value,
+    gstin: document.getElementById('s_gstin').value,
+    phone: document.getElementById('s_phone').value,
+    email: document.getElementById('s_email').value,
+    address: document.getElementById('s_address').value,
+    state: document.getElementById('s_state').value
+  };
+  DB.setObj('company', company);
+  toast('✅ Settings saved');
+}
+function exportData() {
+  const data = {
+    user: { userId: CURRENT_USER.userId },
+    subscription: CURRENT_SUBSCRIPTION,
+    company, smsSettings, emailSettings,
+    parties: DB.get('parties'),
+    items: DB.get('items'),
+    invoices: DB.get('invoices'),
+    payments: DB.get('payments'),
+    filings: DB.get('filings'),
+    scheduledMessages: DB.get('scheduledMessages'),
+    messageHistory: DB.get('messageHistory')
+  };
+  downloadFile('gst-backup-' + todayStr() + '.json', JSON.stringify(data, null, 2), 'application/json');
+  toast('✅ Backup downloaded');
+}
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.company) DB.setObj('company', data.company);
+      if (data.smsSettings) DB.setObj('smsSettings', data.smsSettings);
+      if (data.emailSettings) DB.setObj('emailSettings', data.emailSettings);
+      if (data.parties) DB.set('parties', data.parties);
+      if (data.items) DB.set('items', data.items);
+      if (data.invoices) DB.set('invoices', data.invoices);
+      if (data.payments) DB.set('payments', data.payments);
+      if (data.filings) DB.set('filings', data.filings);
+      if (data.scheduledMessages) DB.set('scheduledMessages', data.scheduledMessages);
+      if (data.messageHistory) DB.set('messageHistory', data.messageHistory);
+      company = DB.getObj('company') || company;
+      smsSettings = DB.getObj('smsSettings') || smsSettings;
+      emailSettings = DB.getObj('emailSettings') || emailSettings;
+      toast('✅ Data imported. Please refresh the page.');
+    } catch (err) { toast('Invalid file format', true); }
+  };
+  reader.readAsText(file);
+}
+function resetAll() {
+  if (!confirm('This will delete ALL your data! Are you sure?')) return;
+  if (!confirm('Really sure? Have you taken a backup?')) return;
+  Auth.initUserData(CURRENT_USER.userId);
+  DB._save({
+    company: { name: '', gstin: '', phone: '', email: '', address: '', state: 'Maharashtra' },
+    parties: [], items: [], invoices: [], payments: [], filings: [],
+    smsSettings: { provider: 'textbelt', apiKey: 'textbelt', countryCode: '91' },
+    emailSettings: { provider: 'mailto', serviceId: '', templateId: '', publicKey: '' },
+    scheduledMessages: [],
+    messageHistory: []
+  });
+  toast('All data reset'); setTimeout(() => location.reload(), 800);
+}
+
+// ============ INIT ============
+(function init() {
+  if (checkAuth()) {
+    loadUserApp(CURRENT_USER, CURRENT_SUBSCRIPTION);
+  } else {
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('appScreen').style.display = 'none';
+    setTimeout(() => {
+      const el = document.getElementById('loginUserId');
+      if (el) el.focus();
+    }, 300);
+  }
+})();
+</script>
+
+</body>
+</html>
