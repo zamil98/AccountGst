@@ -6,7 +6,6 @@
 <title>GST Accounting Software</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<!-- EmailJS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -364,6 +363,7 @@ textarea { width: 100%; min-height: 60px; margin-bottom: 12px; }
     <a data-page="gstReport">📑 GST Report</a>
     <a data-page="gstFiling">🧾 GST Filing</a>
     <a data-page="settings">⚙️ Settings</a>
+    <a data-page="adminPanel" style="background:#dc2626;color:#fff;display:none;" id="adminNavBtn">🔐 Admin Panel</a>
   </nav>
 </header>
 <main>
@@ -555,6 +555,108 @@ textarea { width: 100%; min-height: 60px; margin-bottom: 12px; }
       <button onclick="document.getElementById('importFile').click()" style="background:#f59e0b">⬆️ Import</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
       <button onclick="resetAll()" class="danger" style="margin-top: 12px;">🗑️ Reset All</button>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL PAGE -->
+  <div class="page" id="adminPanel">
+    <h2>🔐 Provider Admin Panel</h2>
+    <div class="setup-warning" style="background:#fee2e2;border-left-color:#dc2626;color:#991b1b;">
+      <b>⚠️ Confidential Area</b><br>
+      Ye panel sirf software provider ke liye hai. Yahan se aap clients ke credentials, subscription aur expiry manage kar sakte hain.
+    </div>
+
+    <div class="cards">
+      <div class="card purple"><span>Total Clients</span><b id="adminTotalClients">0</b></div>
+      <div class="card green"><span>Active</span><b id="adminActiveClients">0</b></div>
+      <div class="card orange"><span>Expiring Soon (≤7d)</span><b id="adminExpiringSoon">0</b></div>
+      <div class="card red"><span>Expired</span><b id="adminExpiredClients">0</b></div>
+    </div>
+
+    <div style="background:white;padding:24px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <h3 style="margin:0;">👥 All Clients</h3>
+        <button class="success small" onclick="adminRefreshClients()">🔄 Refresh</button>
+      </div>
+      <div id="adminClientsList"></div>
+    </div>
+
+    <div style="background:white;padding:24px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+      <h3 style="margin-top:0;">🔑 Change Client Credentials</h3>
+      <p style="color:#64748b;font-size:13px;margin-bottom:16px;">
+        Purane credentials subscription expiry tak automatically valid rahenge. Client purane aur naye dono se login kar payega.
+      </p>
+      <div class="form-grid">
+        <div class="field-group">
+          <label>Old User ID <span class="required">*</span></label>
+          <input type="text" id="adminOldUserId" placeholder="e.g. user1month" list="adminUserIdList">
+        </div>
+        <div class="field-group">
+          <label>New User ID (optional)</label>
+          <input type="text" id="adminNewUserId" placeholder="Leave blank to keep same">
+        </div>
+        <div class="field-group">
+          <label>New Password <span class="required">*</span></label>
+          <input type="text" id="adminNewPassword" placeholder="Enter new password">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+        <button class="success" onclick="adminChangeCredentials()">💾 Change Credentials</button>
+        <button class="secondary" onclick="adminResetForm()">🔄 Clear</button>
+      </div>
+      <div id="adminChangeStatus" class="sms-status" style="margin-top:12px;"></div>
+    </div>
+
+    <div style="background:white;padding:24px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-top:24px;">
+      <h3 style="margin-top:0;">📅 Extend / Manage Subscription</h3>
+      <div class="form-grid">
+        <div class="field-group">
+          <label>Client User ID <span class="required">*</span></label>
+          <input type="text" id="adminExtendUserId" placeholder="e.g. user1month" list="adminUserIdList">
+        </div>
+        <div class="field-group">
+          <label>Action</label>
+          <select id="adminExtendAction">
+            <option value="add">➕ Add Days</option>
+            <option value="set">🔧 Set Exact Expiry (YYYY-MM-DD)</option>
+            <option value="reset">🔄 Reset Plan (from today)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Days / Date</label>
+          <input type="text" id="adminExtendValue" placeholder="e.g. 30 or 2025-12-31">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+        <button class="success" onclick="adminExtendSubscription()">💾 Apply</button>
+      </div>
+      <div id="adminExtendStatus" class="sms-status" style="margin-top:12px;"></div>
+    </div>
+
+    <div style="background:white;padding:24px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-top:24px;">
+      <h3 style="margin-top:0;">🆕 Add New Client</h3>
+      <div class="form-grid">
+        <div class="field-group">
+          <label>User ID <span class="required">*</span></label>
+          <input type="text" id="adminNewClientId" placeholder="e.g. rahul_shop">
+        </div>
+        <div class="field-group">
+          <label>Password <span class="required">*</span></label>
+          <input type="text" id="adminNewClientPassword" placeholder="Min 6 characters">
+        </div>
+        <div class="field-group">
+          <label>Plan Name</label>
+          <input type="text" id="adminNewClientPlan" placeholder="e.g. 1 Year" value="1 Year">
+        </div>
+        <div class="field-group">
+          <label>Plan Days</label>
+          <input type="number" id="adminNewClientDays" value="365" min="1">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+        <button class="success" onclick="adminAddNewClient()">➕ Add Client</button>
+      </div>
+      <div id="adminNewClientStatus" class="sms-status" style="margin-top:12px;"></div>
     </div>
   </div>
 </main>
@@ -816,6 +918,23 @@ textarea { width: 100%; min-height: 60px; margin-bottom: 12px; }
   </div>
 </div>
 
+<!-- ADMIN CHANGE CREDENTIALS MODAL -->
+<div class="modal-overlay" id="adminChangeModal">
+  <div class="modal" style="max-width:600px;">
+    <h3>🔑 Change Credentials</h3>
+    <div style="background:#eff6ff;padding:14px;border-radius:8px;border-left:4px solid #3b82f6;margin-bottom:16px;font-size:13px;">
+      <b>Old User ID:</b> <span id="adminModal_oldId" style="color:#1e3a8a;font-weight:700;"></span>
+    </div>
+    <div class="profile-field"><label>New User ID (leave blank to keep same)</label><input type="text" id="adminModal_newId"></div>
+    <div class="profile-field"><label>New Password *</label><input type="text" id="adminModal_newPassword" placeholder="Min 6 characters"></div>
+    <div class="profile-field"><label>Confirm New Password *</label><input type="text" id="adminModal_newPassword2"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button class="secondary" onclick="closeAdminChangeModal()">Cancel</button>
+      <button class="success" onclick="submitAdminChangeModal()">💾 Change</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -829,13 +948,17 @@ const SOFTWARE_PROVIDER = {
   email: 'sumetech98@gmial.com'
 };
 
-const PLAN_TEMPLATES = [
+// ============================================================
+// CREDENTIALS SYSTEM
+// ============================================================
+const DEFAULT_PLAN_TEMPLATES = [
   { userId: 'user1month', password: 'month1pass', plan: '1 Month', planDays: 30 },
   { userId: 'user6months', password: 'halfyearpass', plan: '6 Months', planDays: 180 },
   { userId: 'user1year', password: 'yearpass', plan: '1 Year', planDays: 365 },
   { userId: 'admin', password: 'admin123', plan: '1 Year (Demo)', planDays: 30 }
 ];
 
+const CREDENTIALS_KEY = 'gst_credentials_registry';
 const SUBSCRIPTION_KEY = 'gst_subscriptions';
 const AUTH_SESSION_KEY = 'gst_session_v2';
 const DATA_PREFIX = 'gst_data_v2_';
@@ -846,9 +969,132 @@ function getSubscriptions() {
 }
 function saveSubscriptions(subs) { localStorage.setItem(SUBSCRIPTION_KEY, JSON.stringify(subs)); }
 
+function loadCredentialRegistry() {
+  try {
+    const raw = localStorage.getItem(CREDENTIALS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  const registry = {};
+  const subs = getSubscriptions();
+  DEFAULT_PLAN_TEMPLATES.forEach(t => {
+    registry[t.userId] = {
+      userId: t.userId,
+      password: t.password,
+      plan: t.plan,
+      planDays: t.planDays,
+      passwordHistory: subs[t.userId] ? [{ password: t.password, changedAt: new Date().toISOString(), validUntil: subs[t.userId].expiryDate }] : []
+    };
+  });
+  localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(registry));
+  return registry;
+}
+function saveCredentialRegistry(reg) { localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(reg)); }
+
+let PLAN_TEMPLATES = [];
+function refreshPlanTemplates() {
+  const reg = loadCredentialRegistry();
+  PLAN_TEMPLATES = Object.values(reg)
+    .filter(r => !r.isAlias)
+    .map(r => ({
+      userId: r.userId,
+      password: r.password,
+      plan: r.plan,
+      planDays: r.planDays
+    }));
+}
+
+function findUser(userId, password) {
+  const reg = loadCredentialRegistry();
+  const entry = reg[userId];
+  if (!entry) return null;
+
+  if (entry.password === password) {
+    return { userId: entry.userId, password: entry.password, plan: entry.plan, planDays: entry.planDays };
+  }
+
+  if (Array.isArray(entry.passwordHistory)) {
+    const match = entry.passwordHistory.find(h => h.password === password);
+    if (match) {
+      const subs = getSubscriptions();
+      const canonicalId = entry.aliasOf || entry.userId;
+      const sub = subs[entry.userId] || subs[canonicalId];
+      const expiry = sub ? new Date(sub.expiryDate) : (match.validUntil ? new Date(match.validUntil) : null);
+      if (!expiry || new Date() <= expiry) {
+        return { userId: entry.userId, password: match.password, plan: entry.plan, planDays: entry.planDays, usedOldPassword: true };
+      }
+    }
+  }
+  return null;
+}
+
+function providerChangeCredentials(oldUserId, newUserId, newPassword) {
+  const reg = loadCredentialRegistry();
+  const subs = getSubscriptions();
+
+  if (!reg[oldUserId]) {
+    return { success: false, message: 'User not found: ' + oldUserId };
+  }
+  if (newUserId && reg[newUserId] && newUserId !== oldUserId) {
+    return { success: false, message: 'New User ID already exists: ' + newUserId };
+  }
+
+  const entry = reg[oldUserId];
+  const subscription = subs[oldUserId] || subs[entry.aliasOf || oldUserId];
+  const expiry = subscription ? subscription.expiryDate : new Date(Date.now() + 365 * 86400000).toISOString();
+
+  entry.passwordHistory = entry.passwordHistory || [];
+  entry.passwordHistory.push({
+    password: entry.password,
+    changedAt: new Date().toISOString(),
+    validUntil: expiry,
+    oldUserId: oldUserId
+  });
+
+  const finalUserId = newUserId || oldUserId;
+
+  entry.userId = finalUserId;
+  if (newPassword) entry.password = newPassword;
+
+  if (finalUserId !== oldUserId) {
+    reg[finalUserId] = { ...entry, isAlias: false };
+    reg[oldUserId] = { ...entry, userId: oldUserId, isAlias: true, aliasOf: finalUserId };
+  } else {
+    reg[oldUserId] = { ...entry, isAlias: false };
+  }
+
+  saveCredentialRegistry(reg);
+
+  if (finalUserId !== oldUserId && subscription) {
+    subs[finalUserId] = { ...subscription, userId: finalUserId };
+    saveSubscriptions(subs);
+  }
+
+  refreshPlanTemplates();
+  return {
+    success: true,
+    message: `✅ Credentials changed!\nOld credentials valid until: ${new Date(expiry).toLocaleDateString('en-IN')}`,
+    oldUserId,
+    newUserId: finalUserId,
+    expiry
+  };
+}
+
+// ============================================================
+// SUBSCRIPTION HELPERS
+// ============================================================
 function getOrCreateSubscription(user) {
   const subs = getSubscriptions();
+  const reg = loadCredentialRegistry();
+  const entry = reg[user.userId];
+  const canonicalId = entry && entry.aliasOf ? entry.aliasOf : user.userId;
+
   if (subs[user.userId]) return subs[user.userId];
+  if (subs[canonicalId]) {
+    subs[user.userId] = { ...subs[canonicalId], userId: user.userId };
+    saveSubscriptions(subs);
+    return subs[user.userId];
+  }
+
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const expiry = new Date(start);
@@ -872,9 +1118,6 @@ function getDaysRemaining(sub) {
 function fmtSubDate(d) {
   if (typeof d === 'string') d = new Date(d);
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-function findUser(userId, password) {
-  return PLAN_TEMPLATES.find(u => u.userId === userId && u.password === password);
 }
 
 const Auth = {
@@ -917,6 +1160,9 @@ const DB = {
 
 let company = { name: '', gstin: '', phone: '', email: '', address: '', state: 'Maharashtra' };
 
+// ============================================================
+// LOGIN
+// ============================================================
 function handleSubscriptionLogin(e) {
   e.preventDefault();
   const userId = document.getElementById('loginUserId').value.trim();
@@ -926,21 +1172,30 @@ function handleSubscriptionLogin(e) {
   if (!userId) { setFieldError('loginUserIdField', true); hasError = true; } else setFieldError('loginUserIdField', false);
   if (!password) { setFieldError('loginPasswordField', true); hasError = true; } else setFieldError('loginPasswordField', false);
   if (hasError) return;
+
   const user = findUser(userId, password);
   if (!user) { toast('❌ Invalid User ID or Password!', true); setFieldError('loginPasswordField', true); return; }
+
   const subscription = getOrCreateSubscription(user);
   if (isSubscriptionExpired(subscription)) { showExpiredScreen(subscription); return; }
-  Auth.setSession(user.userId);
-  CURRENT_USER = user;
+
+  const reg = loadCredentialRegistry();
+  const entry = reg[userId];
+  const canonicalId = entry && entry.aliasOf ? entry.aliasOf : userId;
+
+  Auth.setSession(userId);
+  CURRENT_USER = { ...user, userId: canonicalId };
   CURRENT_SUBSCRIPTION = subscription;
+
+  Auth.initUserData(canonicalId);
   if (companyName) {
-    Auth.initUserData(user.userId);
-    const userData = Auth.getUserData(user.userId);
+    const userData = Auth.getUserData(canonicalId);
     if (!userData.company) userData.company = {};
     userData.company.name = companyName;
-    Auth.saveUserData(user.userId, userData);
+    Auth.saveUserData(canonicalId, userData);
   }
-  loadUserApp(user, subscription);
+
+  loadUserApp(CURRENT_USER, subscription);
   toast('✅ Welcome, ' + user.userId + '!');
 }
 
@@ -993,7 +1248,10 @@ function updatePlanBadge(subscription) {
 setInterval(() => {
   if (!CURRENT_USER || !CURRENT_SUBSCRIPTION) return;
   const subs = getSubscriptions();
-  const sub = subs[CURRENT_USER.userId];
+  const reg = loadCredentialRegistry();
+  const entry = reg[CURRENT_USER.userId];
+  const canonicalId = entry && entry.aliasOf ? entry.aliasOf : CURRENT_USER.userId;
+  const sub = subs[CURRENT_USER.userId] || subs[canonicalId];
   if (!sub) return;
   if (isSubscriptionExpired(sub)) {
     alert('⛔ Aapka subscription expire ho gaya. Provider se sampark karein.');
@@ -1009,11 +1267,25 @@ function handleLogout() {
 function checkAuth() {
   const session = Auth.getSession();
   if (!session) return false;
-  const user = PLAN_TEMPLATES.find(u => u.userId === session.userId);
-  if (!user) { Auth.logout(); return false; }
+
+  refreshPlanTemplates();
+
+  const reg = loadCredentialRegistry();
+  const entry = reg[session.userId];
+  if (!entry) { Auth.logout(); return false; }
+
+  const canonicalId = entry.aliasOf || session.userId;
+  const user = {
+    userId: canonicalId,
+    password: entry.password,
+    plan: entry.plan,
+    planDays: entry.planDays
+  };
+
   const subs = getSubscriptions();
-  const sub = subs[user.userId];
+  const sub = subs[session.userId] || subs[canonicalId];
   if (!sub || isSubscriptionExpired(sub)) { Auth.logout(); if (sub) showExpiredScreen(sub); return false; }
+
   CURRENT_USER = user;
   CURRENT_SUBSCRIPTION = sub;
   return true;
@@ -1032,6 +1304,13 @@ function loadUserApp(user, subscription) {
   updatePlanBadge(subscription);
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appScreen').style.display = 'block';
+
+  // Show/hide admin nav button
+  const adminBtn = document.getElementById('adminNavBtn');
+  if (adminBtn) {
+    adminBtn.style.display = isAdminUser() ? 'inline-block' : 'none';
+  }
+
   renderDashboard();
   prepareInvoiceForm();
   preparePaymentForm();
@@ -1115,7 +1394,7 @@ function formatSMSNumber(phone) {
   return digits;
 }
 
-// ============ PDF GENERATION ============
+// ============ PDF ============
 function generateInvoicePDF(inv, party, autoDownload = true) {
   if (!window.jspdf) { toast('PDF library load nahi hui', true); return null; }
   const { jsPDF } = window.jspdf;
@@ -1193,7 +1472,7 @@ function generateInvoicePDF(inv, party, autoDownload = true) {
   return { doc, fileName };
 }
 
-// ============ COMMUNICATION SETUP WARNING ============
+// ============ COMMUNICATION SETUP ============
 function checkCommSetupWarning() {
   const box = document.getElementById('setupWarningBox');
   if (!box) return;
@@ -1283,7 +1562,7 @@ function updateCommStats() {
   document.getElementById('bcScheduled').textContent = scheduled.filter(s => s.status === 'scheduled').length;
 }
 
-// ============ SMS SYSTEM (Fast2SMS) ============
+// ============ SMS ============
 let currentSMSPartyId = null;
 
 function openSMSModal(partyId) {
@@ -1333,7 +1612,6 @@ function applySMSTemplate(type) {
   updateSMSCharCount();
 }
 
-// REAL SMS SENDING via Fast2SMS
 async function sendViaFast2SMS() {
   const party = DB.get('parties').find(p => p.id === currentSMSPartyId);
   if (!party) return;
@@ -1353,28 +1631,10 @@ async function sendViaFast2SMS() {
   statusEl.style.display = 'block';
 
   try {
-    // Fast2SMS Quick SMS API (DLT not required for testing, but for production DLT template needed)
     const url = 'https://www.fast2sms.com/dev/bulkV2';
-    const body = new URLSearchParams({
-      route: 'q',
-      message: message,
-      language: 'english',
-      flash: '0',
-      numbers: phone
-    });
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'authorization': smsSettings.apiKey,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: body.toString()
-    });
-
+    const body = new URLSearchParams({ route: 'q', message, language: 'english', flash: '0', numbers: phone });
+    const res = await fetch(url, { method: 'POST', headers: { 'authorization': smsSettings.apiKey, 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
     const data = await res.json();
-    console.log('Fast2SMS response:', data);
-
     if (data.return === true) {
       statusEl.className = 'sms-status success';
       statusEl.innerHTML = `✅ SMS successfully sent to ${party.phone}!<br><small>Request ID: ${data.request_id || 'N/A'}</small>`;
@@ -1383,14 +1643,13 @@ async function sendViaFast2SMS() {
     } else {
       const errMsg = Array.isArray(data.message) ? data.message.join(', ') : (data.message || 'Unknown error');
       statusEl.className = 'sms-status error';
-      statusEl.innerHTML = `❌ SMS failed: ${errMsg}<br><small>Check API key, credits, or DLT registration.</small>`;
+      statusEl.innerHTML = `❌ SMS failed: ${errMsg}`;
       toast('SMS failed: ' + errMsg, true);
       logMessage('sms', party, message, 'failed');
     }
   } catch (err) {
-    console.error('Fast2SMS error:', err);
     statusEl.className = 'sms-status error';
-    statusEl.innerHTML = `❌ Network error: ${err.message}<br><small>Fast2SMS ka CORS block ho sakta hai. Alternative: "Open SMS App" use karein.</small>`;
+    statusEl.innerHTML = `❌ Network error: ${err.message}`;
     toast('SMS sending failed', true);
   }
 }
@@ -1403,7 +1662,7 @@ function sendViaDeviceSMS() {
   const phone = formatSMSNumber(party.phone);
   if (!phone) return toast('Invalid phone', true);
   window.open(`sms:+${phone}?body=${encodeURIComponent(message)}`, '_blank');
-  toast('📱 SMS app opened — manually send karein');
+  toast('📱 SMS app opened');
   logMessage('sms', party, message, 'sent');
   closeSMSModal();
 }
@@ -1416,7 +1675,7 @@ function switchToWhatsAppFromSMS() {
   const phone = formatWhatsAppNumber(party.phone);
   if (!phone) return toast('Invalid phone', true);
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
-  toast('📱 WhatsApp opened — Send button dabayein');
+  toast('📱 WhatsApp opened');
   logMessage('whatsapp', party, message, 'sent');
   closeSMSModal();
 }
@@ -1469,7 +1728,7 @@ async function testSMSSetup() {
   }
 }
 
-// ============ EMAIL SYSTEM (EmailJS) ============
+// ============ EMAIL ============
 let currentEmailPartyId = null;
 
 function openEmailModal(partyId) {
@@ -1519,7 +1778,6 @@ function applyEmailTemplate(type) {
   document.getElementById('email_message').value = body;
 }
 
-// REAL EMAIL via EmailJS
 async function sendViaEmailJS() {
   const to = document.getElementById('email_to').value.trim();
   const subject = document.getElementById('email_subject').value.trim();
@@ -1541,58 +1799,33 @@ async function sendViaEmailJS() {
   statusEl.style.display = 'block';
 
   try {
-    // Ensure emailjs is loaded
-    if (typeof emailjs === 'undefined') {
-      throw new Error('EmailJS library load nahi hui. Page refresh karein.');
-    }
-
-    // Re-init with current key
+    if (typeof emailjs === 'undefined') throw new Error('EmailJS library load nahi hui.');
     emailjs.init(emailSettings.publicKey);
-
     const templateParams = {
       to_email: to,
       to_name: (DB.get('parties').find(p => p.id === currentEmailPartyId) || {}).name || to,
-      subject: subject,
-      message: message,
+      subject, message,
       from_name: company.name || 'GST Accounting',
       from_email: company.email || '',
       reply_to: company.email || ''
     };
-
-    console.log('Sending email with params:', { serviceId: emailSettings.serviceId, templateId: emailSettings.templateId, templateParams });
-
-    const response = await emailjs.send(
-      emailSettings.serviceId,
-      emailSettings.templateId,
-      templateParams
-    );
-
-    console.log('EmailJS response:', response);
-
+    const response = await emailjs.send(emailSettings.serviceId, emailSettings.templateId, templateParams);
     if (response.status === 200) {
       statusEl.className = 'sms-status success';
-      statusEl.innerHTML = `✅ Email successfully sent to <b>${to}</b>!<br><small>Check inbox/spam folder.</small>`;
+      statusEl.innerHTML = `✅ Email successfully sent to <b>${to}</b>!`;
       toast('✅ Email sent successfully!');
       const party = DB.get('parties').find(p => p.id === currentEmailPartyId);
       if (party) logMessage('email', party, subject + '\n\n' + message, 'sent');
       setTimeout(() => closeEmailModal(), 2500);
     } else {
       statusEl.className = 'sms-status error';
-      statusEl.textContent = `❌ Failed: Status ${response.status} - ${response.text || 'Unknown'}`;
-      toast('Email sending failed', true);
+      statusEl.textContent = `❌ Failed: Status ${response.status}`;
     }
   } catch (err) {
-    console.error('EmailJS error:', err);
     const errMsg = err.text || err.message || JSON.stringify(err);
     statusEl.className = 'sms-status error';
-    statusEl.innerHTML = `❌ Email failed: ${errMsg}<br><small>Possible reasons:<br>
-      1. Service ID / Template ID / Public Key galat hai<br>
-      2. Template me variables ({{to_email}}, {{subject}}, {{message}}) set nahi hain<br>
-      3. Email service connected nahi hai (Gmail verify karein)<br>
-      4. Free quota khatam ho gaya</small>`;
+    statusEl.innerHTML = `❌ Email failed: ${errMsg}`;
     toast('Email failed: ' + errMsg, true);
-    const party = DB.get('parties').find(p => p.id === currentEmailPartyId);
-    if (party) logMessage('email', party, subject + '\n\n' + message, 'failed');
   }
 }
 
@@ -1604,7 +1837,7 @@ function sendViaMailto() {
   if (!subject) return toast('Enter subject', true);
   if (!message) return toast('Enter message', true);
   window.open(`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`, '_blank');
-  toast('📧 Email client opened — manually send karein');
+  toast('📧 Email client opened');
   const party = DB.get('parties').find(p => p.id === currentEmailPartyId);
   if (party) logMessage('email', party, subject + '\n\n' + message, 'sent');
   closeEmailModal();
@@ -1642,16 +1875,15 @@ async function testEmailSetup() {
   try {
     emailjs.init(publicKey);
     const res = await emailjs.send(serviceId, templateId, {
-      to_email: testEmail,
-      to_name: 'Test User',
+      to_email: testEmail, to_name: 'Test User',
       subject: 'Test Email from GST Software',
-      message: 'Ye ek test email hai. Agar aapko ye mila, toh EmailJS sahi configure hai!',
+      message: 'Ye ek test email hai.',
       from_name: company.name || 'GST Software',
       reply_to: company.email || testEmail
     });
     if (res.status === 200) {
       statusEl.className = 'sms-status success';
-      statusEl.innerHTML = `✅ Test email bheja gaya ${testEmail} par! Inbox check karein.`;
+      statusEl.innerHTML = `✅ Test email bheja gaya ${testEmail} par!`;
     } else {
       statusEl.className = 'sms-status error';
       statusEl.textContent = '❌ Status: ' + res.status;
@@ -1662,7 +1894,7 @@ async function testEmailSetup() {
   }
 }
 
-// ============ BROADCAST (Fixed) ============
+// ============ BROADCAST ============
 let broadcastSelection = new Set();
 let broadcastQueue = [];
 let broadcastTimer = null;
@@ -1735,7 +1967,6 @@ async function sendBroadcast() {
   });
   if (filtered.length === 0) return toast(`No selected parties have ${channel === 'email' ? 'email' : 'phone'}`, true);
 
-  // Check setup
   if (channel === 'email' && (!emailSettings.serviceId || !emailSettings.templateId || !emailSettings.publicKey)) {
     return toast('❌ EmailJS configure karein (Setup tab)', true);
   }
@@ -1746,7 +1977,6 @@ async function sendBroadcast() {
   const progressEl = document.getElementById('bc_progress');
   progressEl.classList.add('active');
   const total = filtered.length;
-
   let successCount = 0, failCount = 0;
 
   const updateProgress = (current, party, status) => {
@@ -1755,9 +1985,7 @@ async function sendBroadcast() {
     document.getElementById('bc_progressFill').style.width = `${(current / total) * 100}%`;
   };
 
-  // Real sending based on channel
   if (channel === 'email') {
-    // EmailJS for each
     for (let i = 0; i < filtered.length; i++) {
       const party = filtered[i];
       const msg = messageTemplate.replace(/{name}/g, party.name).replace(/{company}/g, company.name || 'Our Company');
@@ -1765,31 +1993,23 @@ async function sendBroadcast() {
       try {
         emailjs.init(emailSettings.publicKey);
         const res = await emailjs.send(emailSettings.serviceId, emailSettings.templateId, {
-          to_email: party.email,
-          to_name: party.name,
+          to_email: party.email, to_name: party.name,
           subject: subject || `Message from ${company.name || 'Our Company'}`,
           message: msg,
           from_name: company.name || 'GST Software',
           reply_to: company.email || ''
         });
-        if (res.status === 200) {
-          successCount++;
-          logMessage('email', party, (subject || 'Message') + '\n\n' + msg, 'sent');
-        } else {
-          failCount++;
-          logMessage('email', party, (subject || 'Message') + '\n\n' + msg, 'failed');
-        }
+        if (res.status === 200) { successCount++; logMessage('email', party, (subject || 'Message') + '\n\n' + msg, 'sent'); }
+        else { failCount++; logMessage('email', party, (subject || 'Message') + '\n\n' + msg, 'failed'); }
       } catch (err) {
-        console.error('Broadcast email failed for', party.name, err);
         failCount++;
         logMessage('email', party, (subject || 'Message') + '\n\n' + msg, 'failed');
       }
-      await new Promise(r => setTimeout(r, 500)); // small delay
+      await new Promise(r => setTimeout(r, 500));
     }
     document.getElementById('bc_progressText').textContent = `✅ Complete! Success: ${successCount}, Failed: ${failCount}`;
     toast(`✅ Broadcast done: ${successCount} sent, ${failCount} failed`);
   } else if (channel === 'sms') {
-    // Fast2SMS bulk — send one by one
     for (let i = 0; i < filtered.length; i++) {
       const party = filtered[i];
       const phone = formatSMSNumber(party.phone).replace(/^91/, '');
@@ -1806,7 +2026,6 @@ async function sendBroadcast() {
         if (data.return === true) { successCount++; logMessage('sms', party, msg, 'sent'); }
         else { failCount++; logMessage('sms', party, msg, 'failed'); }
       } catch (err) {
-        console.error('SMS broadcast failed for', party.name, err);
         failCount++;
         logMessage('sms', party, msg, 'failed');
       }
@@ -1815,12 +2034,11 @@ async function sendBroadcast() {
     document.getElementById('bc_progressText').textContent = `✅ Complete! Success: ${successCount}, Failed: ${failCount}`;
     toast(`✅ Broadcast done: ${successCount} sent, ${failCount} failed`);
   } else if (channel === 'whatsapp') {
-    // WhatsApp — wa.me opens one by one (user clicks Send manually)
     broadcastQueue = filtered.map(p => ({ party: p, msg: messageTemplate.replace(/{name}/g, p.name).replace(/{company}/g, company.name || 'Our Company') }));
     let idx = 0;
     const sendNextWA = () => {
       if (idx >= broadcastQueue.length) {
-        document.getElementById('bc_progressText').textContent = `✅ Complete! ${broadcastQueue.length} WhatsApp tabs opened. Manually send each.`;
+        document.getElementById('bc_progressText').textContent = `✅ Complete! ${broadcastQueue.length} WhatsApp tabs opened.`;
         toast(`📱 ${broadcastQueue.length} WhatsApp tabs opened`);
         updateCommStats();
         setTimeout(() => {
@@ -2014,9 +2232,6 @@ async function executeScheduled(item, idx) {
         const data = await res.json();
         if (data.return === true) logMessage('sms', { id: item.partyId, name: item.partyName, phone: item.recipient }, item.message, 'sent');
         else logMessage('sms', { id: item.partyId, name: item.partyName, phone: item.recipient }, item.message, 'failed');
-      } else {
-        window.open(`sms:+${formatSMSNumber(item.recipient)}?body=${encodeURIComponent(item.message)}`, '_blank');
-        logMessage('sms', { id: item.partyId, name: item.partyName, phone: item.recipient }, item.message, 'sent');
       }
     } else if (item.type === 'email') {
       if (emailSettings.serviceId && emailSettings.templateId && emailSettings.publicKey) {
@@ -2025,11 +2240,7 @@ async function executeScheduled(item, idx) {
           to_email: item.recipient, to_name: item.partyName, subject: item.subject || '', message: item.message,
           from_name: company.name || 'GST Software', reply_to: company.email || ''
         });
-        if (res.status === 200) logMessage('email', { id: item.partyId, name: item.partyName, email: item.recipient }, (item.subject || '') + '\n\n' + item.message, 'sent');
-        else logMessage('email', { id: item.partyId, name: item.partyName, email: item.recipient }, (item.subject || '') + '\n\n' + item.message, 'failed');
-      } else {
-        window.open(`mailto:${encodeURIComponent(item.recipient)}?subject=${encodeURIComponent(item.subject || '')}&body=${encodeURIComponent(item.message)}`, '_blank');
-        logMessage('email', { id: item.partyId, name: item.partyName, email: item.recipient }, (item.subject || '') + '\n\n' + item.message, 'sent');
+        logMessage('email', { id: item.partyId, name: item.partyName, email: item.recipient }, (item.subject || '') + '\n\n' + item.message, res.status === 200 ? 'sent' : 'failed');
       }
     } else if (item.type === 'broadcast') {
       const parties = DB.get('parties').filter(p => item.recipients.includes(p.id));
@@ -2081,20 +2292,30 @@ function startScheduleChecker() {
 
 // ============ NAVIGATION ============
 document.querySelectorAll('nav a').forEach(a => {
-  a.onclick = () => {
+  a.onclick = (e) => {
+    const page = a.dataset.page;
+
+    // Admin access check
+    if (page === 'adminPanel' && !isAdminUser()) {
+      e.preventDefault();
+      toast('⛔ Admin access only', true);
+      return;
+    }
+
     document.querySelectorAll('nav a').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
     a.classList.add('active');
-    document.getElementById(a.dataset.page).classList.add('active');
-    if (a.dataset.page === 'dashboard') renderDashboard();
-    if (a.dataset.page === 'parties') renderParties();
-    if (a.dataset.page === 'items') renderItems();
-    if (a.dataset.page === 'invoices') renderInvoices();
-    if (a.dataset.page === 'payments') renderPayments();
-    if (a.dataset.page === 'newInvoice') prepareInvoiceForm();
-    if (a.dataset.page === 'settings') loadSettings();
-    if (a.dataset.page === 'gstFiling') initFilingPage();
-    if (a.dataset.page === 'communication') {
+    document.getElementById(page).classList.add('active');
+    if (page === 'dashboard') renderDashboard();
+    if (page === 'parties') renderParties();
+    if (page === 'items') renderItems();
+    if (page === 'invoices') renderInvoices();
+    if (page === 'payments') renderPayments();
+    if (page === 'newInvoice') prepareInvoiceForm();
+    if (page === 'settings') loadSettings();
+    if (page === 'gstFiling') initFilingPage();
+    if (page === 'adminPanel') adminRefreshClients();
+    if (page === 'communication') {
       updateCommStats(); checkCommSetupWarning();
       if (currentCommTab === 'scheduled') renderScheduledMessages();
       if (currentCommTab === 'history') renderMessageHistory();
@@ -2189,7 +2410,6 @@ function renderParties() {
     </table>` : `<div class="empty">${search ? '🔍 No match' : '👥 No parties yet'}</div>`}
   `;
 }
-
 function openPartyEditModal(partyId) {
   const party = DB.get('parties').find(p => p.id === partyId);
   if (!party) return toast('Not found', true);
@@ -2207,14 +2427,12 @@ function openPartyEditModal(partyId) {
   const invoices = DB.get('invoices').filter(i => i.party_id === partyId);
   const salesInvoices = invoices.filter(i => i.type === 'sale');
   const purchaseInvoices = invoices.filter(i => i.type === 'purchase');
-  const totalSales = salesInvoices.reduce((s, i) => s + i.total, 0);
-  const totalPurchase = purchaseInvoices.reduce((s, i) => s + i.total, 0);
   document.getElementById('pe_stats').innerHTML = `
-    <div class="pe-stat"><span>Total Invoices</span><b>${invoices.length}</b></div>
+    <div class="pe-stat"><span>Invoices</span><b>${invoices.length}</b></div>
     <div class="pe-stat"><span>Sales</span><b>${salesInvoices.length}</b></div>
-    <div class="pe-stat"><span>Sales Value</span><b>${fmt(totalSales)}</b></div>
+    <div class="pe-stat"><span>Sales Value</span><b>${fmt(salesInvoices.reduce((s, i) => s + i.total, 0))}</b></div>
     <div class="pe-stat"><span>Purchase</span><b>${purchaseInvoices.length}</b></div>
-    <div class="pe-stat"><span>Purchase Value</span><b>${fmt(totalPurchase)}</b></div>
+    <div class="pe-stat"><span>Purchase Value</span><b>${fmt(purchaseInvoices.reduce((s, i) => s + i.total, 0))}</b></div>
   `;
   document.getElementById('partyEditModal').classList.add('active');
 }
@@ -2233,8 +2451,7 @@ function savePartyEdit() {
   const email = document.getElementById('pe_email').value.trim();
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast('Invalid email', true);
   const type = document.querySelector('input[name="pe_type"]:checked')?.value || 'customer';
-  const opening_balance = parseFloat(document.getElementById('pe_opening_balance').value) || 0;
-  list[idx] = { ...list[idx], name, gstin, phone, email, state: document.getElementById('pe_state').value.trim(), address: document.getElementById('pe_address').value.trim(), type, opening_balance, updatedAt: new Date().toISOString() };
+  list[idx] = { ...list[idx], name, gstin, phone, email, state: document.getElementById('pe_state').value.trim(), address: document.getElementById('pe_address').value.trim(), type, opening_balance: parseFloat(document.getElementById('pe_opening_balance').value) || 0, updatedAt: new Date().toISOString() };
   DB.set('parties', list);
   closePartyEditModal();
   renderParties(); updateCommStats(); toast('✅ Updated!');
@@ -2332,7 +2549,7 @@ function sendInvoiceOnWhatsApp(invoiceId) {
   const msg = buildInvoiceMessage(inv, party);
   setTimeout(() => {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-    toast('📱 WhatsApp opened — attach PDF & send');
+    toast('📱 WhatsApp opened');
     logMessage('whatsapp', party, msg, 'sent');
     closeWhatsAppModal();
   }, 900);
@@ -3185,8 +3402,298 @@ function resetAll() {
   toast('Reset done'); setTimeout(() => location.reload(), 800);
 }
 
+// ============================================================
+// ADMIN PANEL
+// ============================================================
+function isAdminUser() {
+  return CURRENT_USER && CURRENT_USER.userId === 'admin';
+}
+
+function adminRefreshClients() {
+  refreshPlanTemplates();
+  const reg = loadCredentialRegistry();
+  const subs = getSubscriptions();
+
+  const allClients = Object.values(reg).filter(c => !c.isAlias);
+  let active = 0, expiringSoon = 0, expired = 0;
+
+  allClients.forEach(c => {
+    const canonicalId = c.aliasOf || c.userId;
+    const sub = subs[c.userId] || subs[canonicalId];
+    if (!sub) return;
+    const days = getDaysRemaining(sub);
+    if (isSubscriptionExpired(sub)) expired++;
+    else if (days <= 7) expiringSoon++;
+    else active++;
+  });
+
+  document.getElementById('adminTotalClients').textContent = allClients.length;
+  document.getElementById('adminActiveClients').textContent = active;
+  document.getElementById('adminExpiringSoon').textContent = expiringSoon;
+  document.getElementById('adminExpiredClients').textContent = expired;
+
+  const datalist = document.getElementById('adminUserIdList');
+  if (datalist) {
+    datalist.innerHTML = allClients.map(c => `<option value="${escAttr(c.userId)}">`).join('');
+  }
+
+  const listHtml = allClients.map(c => {
+    const canonicalId = c.aliasOf || c.userId;
+    const sub = subs[c.userId] || subs[canonicalId];
+    const days = sub ? getDaysRemaining(sub) : 0;
+    const isExpired = sub ? isSubscriptionExpired(sub) : false;
+    const statusBadge = !sub
+      ? '<span class="badge pending">No Sub</span>'
+      : isExpired
+        ? '<span class="badge failed">❌ Expired</span>'
+        : days <= 7
+          ? `<span class="badge low-stock">⚠️ ${days}d left</span>`
+          : `<span class="badge in-stock">✅ ${days}d left</span>`;
+
+    const historyCount = (c.passwordHistory || []).length;
+
+    return `<tr>
+      <td><b>${esc(c.userId)}</b>${c.aliasOf ? `<br><small style="color:#64748b">alias of ${esc(c.aliasOf)}</small>` : ''}</td>
+      <td><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;">${esc(c.password)}</code></td>
+      <td>${esc(c.plan)}</td>
+      <td>${sub ? fmtSubDate(sub.expiryDate) : '—'}</td>
+      <td>${statusBadge}</td>
+      <td><span class="badge unit" title="Old passwords still valid until expiry">${historyCount} old pwd</span></td>
+      <td>
+        <button class="edit-btn" onclick="openAdminChangeModal('${escAttr(c.userId)}')">🔑 Change</button>
+        <button class="remove-btn" onclick="adminDeleteClient('${escAttr(c.userId)}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('adminClientsList').innerHTML = allClients.length ? `
+    <table>
+      <thead><tr>
+        <th>User ID</th><th>Password</th><th>Plan</th><th>Expiry</th><th>Status</th><th>History</th><th>Actions</th>
+      </tr></thead>
+      <tbody>${listHtml}</tbody>
+    </table>
+  ` : '<div class="empty">No clients yet</div>';
+}
+
+function adminChangeCredentials() {
+  const oldId = document.getElementById('adminOldUserId').value.trim();
+  const newId = document.getElementById('adminNewUserId').value.trim();
+  const newPwd = document.getElementById('adminNewPassword').value.trim();
+  const statusEl = document.getElementById('adminChangeStatus');
+
+  if (!oldId) {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ Old User ID required';
+    return;
+  }
+  if (!newPwd || newPwd.length < 6) {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ New password must be at least 6 characters';
+    return;
+  }
+
+  const result = providerChangeCredentials(oldId, newId || null, newPwd);
+
+  if (result.success) {
+    statusEl.className = 'sms-status success';
+    statusEl.innerHTML = `✅ Credentials changed!<br>
+      <b>Old:</b> ${esc(result.oldUserId)} (still valid until ${new Date(result.expiry).toLocaleDateString('en-IN')})<br>
+      <b>New:</b> ${esc(result.newUserId)} / ${esc(newPwd)}`;
+    toast('✅ Credentials changed successfully');
+    adminResetForm();
+    adminRefreshClients();
+  } else {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ ' + result.message;
+    toast(result.message, true);
+  }
+}
+
+function adminResetForm() {
+  document.getElementById('adminOldUserId').value = '';
+  document.getElementById('adminNewUserId').value = '';
+  document.getElementById('adminNewPassword').value = '';
+}
+
+let adminModalOldId = null;
+function openAdminChangeModal(userId) {
+  adminModalOldId = userId;
+  document.getElementById('adminModal_oldId').textContent = userId;
+  document.getElementById('adminModal_newId').value = '';
+  document.getElementById('adminModal_newPassword').value = '';
+  document.getElementById('adminModal_newPassword2').value = '';
+  document.getElementById('adminChangeModal').classList.add('active');
+}
+function closeAdminChangeModal() {
+  document.getElementById('adminChangeModal').classList.remove('active');
+  adminModalOldId = null;
+}
+function submitAdminChangeModal() {
+  const newId = document.getElementById('adminModal_newId').value.trim();
+  const newPwd = document.getElementById('adminModal_newPassword').value.trim();
+  const newPwd2 = document.getElementById('adminModal_newPassword2').value.trim();
+
+  if (!newPwd || newPwd.length < 6) return toast('Password min 6 chars', true);
+  if (newPwd !== newPwd2) return toast('Passwords do not match', true);
+
+  const result = providerChangeCredentials(adminModalOldId, newId || null, newPwd);
+  if (result.success) {
+    toast('✅ Credentials changed!');
+    closeAdminChangeModal();
+    adminRefreshClients();
+  } else {
+    toast(result.message, true);
+  }
+}
+
+function adminDeleteClient(userId) {
+  if (!confirm(`Delete client "${userId}" completely?\n\nThis will remove credentials AND subscription.`)) return;
+
+  const reg = loadCredentialRegistry();
+  delete reg[userId];
+  saveCredentialRegistry(reg);
+
+  const subs = getSubscriptions();
+  delete subs[userId];
+  saveSubscriptions(subs);
+
+  refreshPlanTemplates();
+  adminRefreshClients();
+  toast('🗑️ Client deleted');
+}
+
+function adminExtendSubscription() {
+  const userId = document.getElementById('adminExtendUserId').value.trim();
+  const action = document.getElementById('adminExtendAction').value;
+  const value = document.getElementById('adminExtendValue').value.trim();
+  const statusEl = document.getElementById('adminExtendStatus');
+
+  if (!userId) {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ User ID required';
+    return;
+  }
+
+  const subs = getSubscriptions();
+  if (!subs[userId]) {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ Subscription not found for: ' + userId;
+    return;
+  }
+
+  const sub = subs[userId];
+
+  try {
+    if (action === 'add') {
+      const days = parseInt(value);
+      if (!days || days < 1) throw new Error('Enter valid days');
+      const currentExpiry = new Date(sub.expiryDate);
+      const base = currentExpiry > new Date() ? currentExpiry : new Date();
+      base.setDate(base.getDate() + days);
+      base.setHours(23, 59, 59, 999);
+      sub.expiryDate = base.toISOString();
+      sub.plan = sub.plan + ` (+${days}d)`;
+    } else if (action === 'set') {
+      const newDate = new Date(value);
+      if (isNaN(newDate.getTime())) throw new Error('Invalid date. Use YYYY-MM-DD');
+      newDate.setHours(23, 59, 59, 999);
+      sub.expiryDate = newDate.toISOString();
+    } else if (action === 'reset') {
+      const days = parseInt(value) || sub.planDays || 365;
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const expiry = new Date(start);
+      expiry.setDate(expiry.getDate() + days);
+      expiry.setHours(23, 59, 59, 999);
+      sub.startDate = start.toISOString();
+      sub.expiryDate = expiry.toISOString();
+      sub.activatedAt = new Date().toISOString();
+    }
+
+    subs[userId] = sub;
+    saveSubscriptions(subs);
+    statusEl.className = 'sms-status success';
+    statusEl.innerHTML = `✅ Subscription updated!<br>New expiry: <b>${fmtSubDate(sub.expiryDate)}</b> (${getDaysRemaining(sub)} days)`;
+    toast('✅ Subscription updated');
+    adminRefreshClients();
+  } catch (err) {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ ' + err.message;
+  }
+}
+
+function adminAddNewClient() {
+  const userId = document.getElementById('adminNewClientId').value.trim();
+  const password = document.getElementById('adminNewClientPassword').value.trim();
+  const plan = document.getElementById('adminNewClientPlan').value.trim() || '1 Year';
+  const days = parseInt(document.getElementById('adminNewClientDays').value) || 365;
+  const statusEl = document.getElementById('adminNewClientStatus');
+
+  if (!userId || userId.length < 3) {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ User ID must be at least 3 characters';
+    return;
+  }
+  if (!password || password.length < 6) {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ Password must be at least 6 characters';
+    return;
+  }
+  if (!/^[a-zA-Z0-9_]+$/.test(userId)) {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ User ID can only have letters, numbers, underscore';
+    return;
+  }
+
+  const reg = loadCredentialRegistry();
+  if (reg[userId]) {
+    statusEl.className = 'sms-status error';
+    statusEl.textContent = '❌ User ID already exists: ' + userId;
+    return;
+  }
+
+  reg[userId] = {
+    userId,
+    password,
+    plan,
+    planDays: days,
+    passwordHistory: []
+  };
+  saveCredentialRegistry(reg);
+
+  const subs = getSubscriptions();
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const expiry = new Date(start);
+  expiry.setDate(expiry.getDate() + days);
+  expiry.setHours(23, 59, 59, 999);
+
+  subs[userId] = {
+    userId, plan, planDays: days,
+    startDate: start.toISOString(),
+    expiryDate: expiry.toISOString(),
+    activatedAt: new Date().toISOString()
+  };
+  saveSubscriptions(subs);
+
+  refreshPlanTemplates();
+  statusEl.className = 'sms-status success';
+  statusEl.innerHTML = `✅ Client added!<br>
+    <b>User ID:</b> ${esc(userId)}<br>
+    <b>Password:</b> ${esc(password)}<br>
+    <b>Expiry:</b> ${fmtSubDate(expiry)}`;
+  toast('✅ New client added');
+
+  document.getElementById('adminNewClientId').value = '';
+  document.getElementById('adminNewClientPassword').value = '';
+
+  adminRefreshClients();
+}
+
 // ============ INIT ============
 (function init() {
+  refreshPlanTemplates();
   if (checkAuth()) {
     loadUserApp(CURRENT_USER, CURRENT_SUBSCRIPTION);
   } else {
